@@ -27,9 +27,7 @@ power1 n k
     | k > 0 = product (listProduct n k)
 
 listProduct :: Integer -> Integer -> [Integer]
-listProduct n k
-    | k == 1 = [n]
-    | k > 1 = n : listProduct n (k-1)
+listProduct n k =  replicate (fromInteger k) n
 
 prop_power1 n k = let k' = abs k in
                     n^k' ==  power1 n k'
