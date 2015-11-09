@@ -1,6 +1,7 @@
 module Blackjack where
 import Cards
 import Wrapper
+import Test.QuickCheck
 {-
 size hand2
     = size (Add (Card (Numeric 2) Hearts)
@@ -73,6 +74,11 @@ numberOfAces (Add card hand)
 (<+) :: Hand -> Hand -> Hand
 Empty <+ h2 = h2
 (Add card hand) <+ h2 = Add card (hand <+ h2)
+
+prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
+prop_onTopOf_assoc p1 p2 p3 = p1 <+ (p2 <+ p3) == (p1 <+ p2) <+ p3
+
+--prop_size_onTopOf :: Hand -> Hand -> Bool
 
 --fullDeck :: Hand
 
