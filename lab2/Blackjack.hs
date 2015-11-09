@@ -78,9 +78,26 @@ Empty <+ h2 = h2
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
 prop_onTopOf_assoc p1 p2 p3 = p1 <+ (p2 <+ p3) == (p1 <+ p2) <+ p3
 
---prop_size_onTopOf :: Hand -> Hand -> Bool
+prop_size_onTopOf :: Hand -> Hand -> Bool
+prop_size_onTopOf h1 h2 = size h1 + size h2 == size (h1 <+ h2)
 
---fullDeck :: Hand
+fullDeck :: Hand
+fullDeck = createFullSuit Spades
+        <+ createFullSuit Hearts
+        <+ createFullSuit Diamonds
+        <+ createFullSuit Clubs
+
+createFullSuit :: Suit -> Hand
+createFullSuit s = createFullSuit' createRanks s
+  where createFullSuit' [] _      = Empty
+        createFullSuit' (r:sr) s' = createHand r s' <+ createFullSuit' sr s'
+
+createRanks :: [Rank]
+createRanks = [Numeric n | n <- [2..10]] ++ [Jack, Queen, King, Ace]
+
+createHand :: Rank -> Suit -> Hand
+createHand r s = Add (createCard r s) Empty 
+  where createCard r' s' = Card {rank=r', suit=s'}
 
 --draw :: Hand -> Hand -> (Hand, Hand)
 
