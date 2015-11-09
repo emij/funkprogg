@@ -59,11 +59,8 @@ prop_powers n k = let k' = abs k in
                     n^k' == power1 n k' && n^k' == power2 n k'
 
 test_powers =
-    allTrue [ prop_powers x y | x <- [-50..50], y <- [0..50] ]
+    and [ prop_powers x y | x <- [-50..50], y <- [0..50] ]
 
-allTrue (x:xs)
-    | xs == []      = True
-    | x == True     = allTrue xs
-    | x == False    = error "Abort - Test failed"
+
 
 
