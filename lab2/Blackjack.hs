@@ -99,7 +99,9 @@ createHand :: Rank -> Suit -> Hand
 createHand r s = Add (createCard r s) Empty 
   where createCard r' s' = Card {rank=r', suit=s'}
 
---draw :: Hand -> Hand -> (Hand, Hand)
+draw :: Hand -> Hand -> (Hand, Hand)
+draw Empty _ = error "draw: The deck is empty"
+draw (Add card deck) hand = (deck, (Add card hand))
 
 --playBank :: Hand -> Hand
 
