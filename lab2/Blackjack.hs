@@ -96,13 +96,23 @@ createRanks :: [Rank]
 createRanks = [Numeric n | n <- [2..10]] ++ [Jack, Queen, King, Ace]
 
 createHand :: Rank -> Suit -> Hand
-createHand r s = Add (createCard r s) Empty 
+createHand r s = Add (createCard r s) Empty
   where createCard r' s' = Card {rank=r', suit=s'}
 
 draw :: Hand -> Hand -> (Hand, Hand)
 draw Empty _ = error "draw: The deck is empty"
 draw (Add card deck) hand = (deck, (Add card hand))
 
---playBank :: Hand -> Hand
+playBank :: Hand -> Hand
+playBank deck = playBank' (deck, Empty)
+
+playBank' :: (Hand,Hand) -> Hand
+playBank' (deck,bankHand)
+    | value bankHand < 16 = playBank' (deck', bankHand')
+    | otherwise = bankHand
+    where (deck', bankHand') = draw deck bankHand
+
+
+
 
 --shuffle :: stdGen -> Hand -> Hand
