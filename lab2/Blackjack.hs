@@ -55,10 +55,10 @@ gameOver hand
 -- The winner.
 
 winner :: Hand -> Hand -> Player
-winner gHand bHand
-  | gameOver gHand = Bank
-  | gameOver bHand = Guest
-  | value gHand > value bHand = Guest
+winner guest bank
+  | gameOver guest = Bank
+  | gameOver bank = Guest
+  | value guest > value bank = Guest
   | otherwise = Bank
 
 -- Number of Aces in a hand.
