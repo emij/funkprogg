@@ -27,7 +27,7 @@ empty = Empty
 -- The value of a hand.
 
 value :: Hand -> Integer
-value hand 
+value hand
   | value' hand <= 21 = value' hand
   | otherwise         = value' hand - (numberOfAces hand * 10)
       where value' Empty = 0
@@ -69,7 +69,10 @@ numberOfAces (Add card hand)
     | valueCard card == 11 = 1 + numberOfAces hand
     | otherwise = numberOfAces hand
 
---(<+) :: Hand -> Hand -> Hand
+
+(<+) :: Hand -> Hand -> Hand
+Empty <+ h2 = h2
+(Add card hand) <+ h2 = Add card (hand <+ h2)
 
 --fullDeck :: Hand
 
