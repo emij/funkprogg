@@ -1,7 +1,7 @@
 module Blackjack where
 import Cards
 import Wrapper
-import Test.QuickCheck()
+import Test.QuickCheck
 
 {-
 size hand2
