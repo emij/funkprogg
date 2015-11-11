@@ -24,10 +24,7 @@ import Test.QuickCheck
 power1 :: Integer -> Integer -> Integer
 power1 n k
     | k == 0 = 1
-    | k > 0 = product (listProduct n k)
-
-listProduct :: Integer -> Integer -> [Integer]
-listProduct n k =  replicate (fromInteger k) n
+    | k > 0 = product (replicate (fromInteger k) n)
 
 prop_power1 n k = let k' = abs k in
                     n^k' ==  power1 n k'
@@ -47,10 +44,11 @@ prop_power2 n k = let k' = abs k in
 
 {-
     Part 4
-    We have chosen numbers between zero and fifty. We do not use any negative
-    numbers for k since our function is not defined for that input. Test
-    cases thus uses all combinations of negative, zero and positive number
-    that the function should support. Already from the start we implemented
+    For n we test a negative value, zero and a positive value.
+    We do not use any negative numbers for k since our function
+    is not defined for that input. Test cases thus uses all
+    combinations of negative, zero and positive number that the
+    function should support. Already from the start we implemented
     property functions for each top level function and verified their
     functionallity with QuickCheck.
 -}
