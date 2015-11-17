@@ -38,14 +38,12 @@ valueRank _ = 10
 numberOfAces :: Hand -> Integer
 numberOfAces Empty = 0
 numberOfAces (Add card hand)
-    | valueCard card == 11 = 1 + numberOfAces hand
+    | rank card == Ace = 1 + numberOfAces hand
     | otherwise = numberOfAces hand
 
 -- Check if hand-value is above 21.
 gameOver :: Hand -> Bool
-gameOver hand
-  | value hand > 21 = True
-  | otherwise = False
+gameOver hand = value hand > 21
 
 -- The winner.
 winner :: Hand -> Hand -> Player

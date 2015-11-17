@@ -2,6 +2,7 @@ module Blackjack where
 import Cards
 import Wrapper
 import Test.QuickCheck
+import System.Random
 
 {-
 size hand2
@@ -23,6 +24,8 @@ exH3 :: Hand
 exH3 = (Add (Card King Hearts) (Add (Card Jack Spades) Empty))
 exH4 :: Hand
 exH4 = (Add (Card Ace Hearts) (Add (Card Ace Spades) (Add (Card Ace Diamonds) Empty)))
+exH5 :: Hand
+exH5 = Add (Card (Numeric 9) Hearts) $ Add (Card (Numeric 8) Spades) $ Add (Card (Numeric 5) Hearts) Empty
 
 -- Returns an Empty hand.
 empty :: Hand
@@ -48,9 +51,7 @@ valueRank _ = 10
 
 -- Check if hand-value is above 21.
 gameOver :: Hand -> Bool
-gameOver hand
-  | value hand > 21 = True
-  | otherwise = False
+gameOver hand = value hand > 21
 
 -- The winner.
 winner :: Hand -> Hand -> Player
@@ -64,7 +65,7 @@ winner guest bank
 numberOfAces :: Hand -> Integer
 numberOfAces Empty = 0
 numberOfAces (Add card hand)
-    | valueCard card == 11 = 1 + numberOfAces hand
+    | rank card == Ace = 1 + numberOfAces hand
     | otherwise = numberOfAces hand
 
 -- <+ OnTopOf operator, adds on hand to another
@@ -113,3 +114,4 @@ playBank' (deck,bankHand)
     where (deck', bankHand') = draw deck bankHand
 
 --shuffle :: stdGen -> Hand -> Hand
+
