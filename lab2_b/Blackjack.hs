@@ -1,7 +1,7 @@
 module Blackjack where
 import Cards
 import Wrapper
-import Test.QuickCheck
+import Test.QuickCheck hiding (shuffle)
 import System.Random
 
 {-
@@ -114,5 +114,49 @@ playBank' (deck,bankHand)
     | otherwise = bankHand
     where (deck', bankHand') = draw deck bankHand
 
---shuffle :: stdGen -> Hand -> Hand
+shuffle :: StdGen -> Hand -> Hand
+shuffle gen hand = fst(shuffle' (Empty, hand) gen)
 
+shuffle' :: (Hand, Hand) -> StdGen -> (Hand, Hand)
+shuffle' (hand1, Empty) _ = (hand1, Empty)
+shuffle' (hand1, hand2) g = shuffle' ((Add (retCard' g hand2) hand1), retHand' g hand2) g
+  where nextIndex g h = fst(randR g h)
+        nextGen   g h = snd(randR g h)
+        randR :: StdGen -> Hand -> (Int, StdGen)
+        randR     g h = randomR (0, size h - 1) g
+        retHand'  g h = fst(drawnCard g h)
+        retCard'  g h = snd(drawnCard g h)
+        drawnCard g h = drawCard h (nextIndex g h)
+        
+prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
+prop_shuffle_sameCards g c h =
+  c `belongsTo` h == c `belongsTo` shuffle g h
+
+belongsTo :: Card -> Hand -> Bool
+c `belongsTo` Empty      = False
+c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
+
+drawCard :: Hand -> Int -> (Hand, Card)
+drawCard Empty _  = error "drawCard: The deck is empty"
+drawCard hand index
+  | size hand <= index || index < 0 = error "drawCard: Index out of bounds"
+  | otherwise                      = drawCard' (hand, Empty) index
+
+drawCard' :: (Hand, Hand) -> Int -> (Hand, Card)
+drawCard' ((Add card hand1), hand2) index
+  | index == 0 = ((hand1 <+ hand2), card)
+  | otherwise  = drawCard' (hand1, Add card hand2) (index - 1)
+
+implementation = Interface { 
+iEmpty = empty
+, iFullDeck = fullDeck
+, iValue = value
+, iGameOver = gameOver
+, iWinner = winner
+, iDraw = draw
+, iPlayBank = playBank
+, iShuffle = shuffle
+}
+
+main :: IO ()
+main = runGame implementation
