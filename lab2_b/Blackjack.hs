@@ -114,6 +114,7 @@ playBank' (deck,bankHand)
     | otherwise           = bankHand
     where (deck', bankHand') = draw deck bankHand
 
+-- Given a StdGen shuffles the hand
 shuffle :: StdGen -> Hand -> Hand
 shuffle gen hand = fst(shuffle' (Empty, hand) gen)
 
@@ -128,15 +129,17 @@ shuffle' (hand1, hand2) g = shuffle' ((Add (retCard' g hand2) hand1), retHand' g
         retHand'  g h = fst(drawnCard g h)
         retCard'  g h = snd(drawnCard g h)
         drawnCard g h = drawCard h (nextIndex g h)
-        
+
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
   c `belongsTo` h == c `belongsTo` shuffle g h
 
+-- Checks wether a card belongs to a hand
 belongsTo :: Card -> Hand -> Bool
 c `belongsTo` Empty      = False
 c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
 
+-- Draws the card of index I from the provided hand
 drawCard :: Hand -> Int -> (Hand, Card)
 drawCard Empty _  = error "drawCard: The deck is empty"
 drawCard hand index
@@ -148,6 +151,7 @@ drawCard' ((Add card hand1), hand2) index
   | index == 0 = ((hand1 <+ hand2), card)
   | otherwise  = drawCard' (hand1, Add card hand2) (index - 1)
 
+-- Implementation interface
 implementation :: Interface 
 implementation = Interface { 
     iEmpty     = empty
