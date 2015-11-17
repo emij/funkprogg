@@ -120,15 +120,13 @@ shuffle gen hand = fst(shuffle' (Empty, hand) gen)
 
 shuffle' :: (Hand, Hand) -> StdGen -> (Hand, Hand)
 shuffle' (hand1, Empty) _ = (hand1, Empty)
-shuffle' (hand1, hand2) g = shuffle' ((Add (retCard' g hand2) hand1), retHand' g hand2) g
-  where nextIndex g h = fst(randR g h)
-        nextGen   g h = snd(randR g h)
-
-        randR :: StdGen -> Hand -> (Int, StdGen)
-        randR     g h = randomR (0, size h - 1) g
-        retHand'  g h = fst(drawnCard g h)
-        retCard'  g h = snd(drawnCard g h)
-        drawnCard g h = drawCard h (nextIndex g h)
+shuffle' (hand1, hand2) g = shuffle' ((Add drawnCard hand1), restHand) nextGen
+  where restHand  = fst(drawTuple)
+        drawnCard = snd(drawTuple)
+        drawTuple = drawCard hand2 index
+        index     = fst(randTuple)
+        nextGen   = snd(randTuple)
+        randTuple = randomR (0, size hand2 - 1) g
 
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
