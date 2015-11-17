@@ -19,10 +19,11 @@ empty = Empty
 -- The value of a hand.
 value :: Hand -> Integer
 value hand
-  | value' hand <= 21 = value' hand
-  | otherwise         = value' hand - (numberOfAces hand * 10)
+  | handValue <= 21 = handValue
+  | otherwise       = handValue - (numberOfAces hand * 10)
       where value' Empty = 0
             value' (Add card hand') = valueCard card + value' hand'
+            handValue = value' hand
 
 -- The value of a card.
 valueCard :: Card -> Integer
