@@ -32,15 +32,15 @@ valueCard (Card r _) = valueRank r
 -- The rank of a card.
 valueRank :: Rank -> Integer
 valueRank (Numeric n) = n
-valueRank Ace = 11
-valueRank _ = 10
+valueRank Ace         = 11
+valueRank _           = 10
 
 -- Number of Aces in a hand.
 numberOfAces :: Hand -> Integer
 numberOfAces Empty = 0
 numberOfAces (Add card hand)
     | rank card == Ace = 1 + numberOfAces hand
-    | otherwise = numberOfAces hand
+    | otherwise        = numberOfAces hand
 
 -- Check if hand-value is above 21.
 gameOver :: Hand -> Bool
@@ -49,7 +49,7 @@ gameOver hand = value hand > 21
 -- The winner.
 winner :: Hand -> Hand -> Player
 winner guest bank
-  | gameOver guest = Bank
-  | gameOver bank = Guest
+  | gameOver guest           = Bank
+  | gameOver bank            = Guest
   | value guest > value bank = Guest
-  | otherwise = Bank
+  | otherwise                = Bank

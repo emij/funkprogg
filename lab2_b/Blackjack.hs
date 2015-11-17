@@ -36,7 +36,7 @@ value :: Hand -> Integer
 value hand
   | handValue <= 21 = handValue
   | otherwise       = handValue - (numberOfAces hand * 10)
-      where value' Empty = 0
+      where value' Empty            = 0
             value' (Add card hand') = valueCard card + value' hand'
             handValue = value' hand
 
@@ -47,8 +47,8 @@ valueCard (Card r _) = valueRank r
 -- The rank of a card.
 valueRank :: Rank -> Integer
 valueRank (Numeric n) = n
-valueRank Ace = 11
-valueRank _ = 10
+valueRank Ace         = 11
+valueRank _           = 10
 
 -- Check if hand-value is above 21.
 gameOver :: Hand -> Bool
@@ -57,21 +57,21 @@ gameOver hand = value hand > 21
 -- The winner.
 winner :: Hand -> Hand -> Player
 winner guest bank
-  | gameOver guest = Bank
-  | gameOver bank = Guest
+  | gameOver guest           = Bank
+  | gameOver bank            = Guest
   | value guest > value bank = Guest
-  | otherwise = Bank
+  | otherwise                = Bank
 
 -- Number of Aces in a hand.
 numberOfAces :: Hand -> Integer
 numberOfAces Empty = 0
 numberOfAces (Add card hand)
     | rank card == Ace = 1 + numberOfAces hand
-    | otherwise = numberOfAces hand
+    | otherwise        = numberOfAces hand
 
 -- <+ OnTopOf operator, adds on hand to another
 (<+) :: Hand -> Hand -> Hand
-Empty <+ h2 = h2
+Empty <+ h2           = h2
 (Add card hand) <+ h2 = Add card (hand <+ h2)
 
 -- Associative property of onTopOf (<+)
@@ -111,7 +111,7 @@ playBank deck = playBank' (deck, Empty)
 playBank' :: (Hand,Hand) -> Hand
 playBank' (deck,bankHand)
     | value bankHand < 16 = playBank' (deck', bankHand')
-    | otherwise = bankHand
+    | otherwise           = bankHand
     where (deck', bankHand') = draw deck bankHand
 
 shuffle :: StdGen -> Hand -> Hand
@@ -122,6 +122,7 @@ shuffle' (hand1, Empty) _ = (hand1, Empty)
 shuffle' (hand1, hand2) g = shuffle' ((Add (retCard' g hand2) hand1), retHand' g hand2) g
   where nextIndex g h = fst(randR g h)
         nextGen   g h = snd(randR g h)
+
         randR :: StdGen -> Hand -> (Int, StdGen)
         randR     g h = randomR (0, size h - 1) g
         retHand'  g h = fst(drawnCard g h)
@@ -140,22 +141,23 @@ drawCard :: Hand -> Int -> (Hand, Card)
 drawCard Empty _  = error "drawCard: The deck is empty"
 drawCard hand index
   | size hand <= index || index < 0 = error "drawCard: Index out of bounds"
-  | otherwise                      = drawCard' (hand, Empty) index
+  | otherwise                       = drawCard' (hand, Empty) index
 
 drawCard' :: (Hand, Hand) -> Int -> (Hand, Card)
 drawCard' ((Add card hand1), hand2) index
   | index == 0 = ((hand1 <+ hand2), card)
   | otherwise  = drawCard' (hand1, Add card hand2) (index - 1)
 
+implementation :: Interface 
 implementation = Interface { 
-iEmpty = empty
-, iFullDeck = fullDeck
-, iValue = value
-, iGameOver = gameOver
-, iWinner = winner
-, iDraw = draw
-, iPlayBank = playBank
-, iShuffle = shuffle
+    iEmpty     = empty
+  , iFullDeck  = fullDeck
+  , iValue     = value
+  , iGameOver  = gameOver
+  , iWinner    = winner
+  , iDraw      = draw
+  , iPlayBank  = playBank
+  , iShuffle   = shuffle
 }
 
 main :: IO ()
