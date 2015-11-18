@@ -128,6 +128,8 @@ shuffle' (hand1, hand2) g = shuffle' ((Add drawnCard hand1), restHand) nextGen
         nextGen   = snd(randTuple)
         randTuple = randomR (0, size hand2 - 1) g
 
+-- Checks that a card still belongs to a hand after it
+-- has been shuffled
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
   c `belongsTo` h == c `belongsTo` shuffle g h
@@ -136,6 +138,12 @@ prop_shuffle_sameCards g c h =
 belongsTo :: Card -> Hand -> Bool
 c `belongsTo` Empty      = False
 c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
+
+-- Checks that the size of hand is preserved after shuffle
+prop_size_shuffle :: StdGen -> Hand -> Bool
+prop_size_shuffle g h =
+  size h == size (shuffle g h)
+
 
 -- Draws the card of index I from the provided hand
 drawCard :: Hand -> Int -> (Hand, Card)
@@ -150,8 +158,8 @@ drawCard' ((Add card hand1), hand2) index
   | otherwise  = drawCard' (hand1, Add card hand2) (index - 1)
 
 -- Implementation interface
-implementation :: Interface 
-implementation = Interface { 
+implementation :: Interface
+implementation = Interface {
     iEmpty     = empty
   , iFullDeck  = fullDeck
   , iValue     = value
