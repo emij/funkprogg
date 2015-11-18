@@ -13,20 +13,6 @@ size hand2
 = 2
 -}
 
--- Temporary test hands used for debugging.
-exH :: Hand
-exH = (Add (Card (Numeric 2) Hearts) (Add (Card Jack Spades) Empty))
-exH1 :: Hand
-exH1 = (Add (Card Ace Hearts) (Add (Card Jack Spades) Empty))
-exH2 :: Hand
-exH2 = (Add (Card Ace Hearts) (Add (Card Ace Spades) Empty))
-exH3 :: Hand
-exH3 = (Add (Card King Hearts) (Add (Card Jack Spades) Empty))
-exH4 :: Hand
-exH4 = (Add (Card Ace Hearts) (Add (Card Ace Spades) (Add (Card Ace Diamonds) Empty)))
-exH5 :: Hand
-exH5 = Add (Card (Numeric 9) Hearts) $ Add (Card (Numeric 8) Spades) $ Add (Card (Numeric 5) Hearts) Empty
-
 -- Returns an Empty hand.
 empty :: Hand
 empty = Empty
@@ -92,11 +78,9 @@ fullDeck = fullSuit Spades
 -- Creates a full suit
 fullSuit :: Suit -> Hand
 fullSuit s = fullSuit' allRanks s
-  where fullSuit' :: [Rank] -> Suit -> Hand
-        fullSuit' [] _      = Empty
-        fullSuit' (r:sr) s' = Add Card {rank=r, suit=s'} Empty <+ fullSuit' sr s'
-
-        allRanks :: [Rank]
+  where fullSuit' [] _      = Empty
+        fullSuit' (r:sr) s' = Add Card {rank=r, suit=s'} Empty <+ 
+          fullSuit' sr s'
         allRanks = [Numeric n | n <- [2..10]] ++ [Jack, Queen, King, Ace]
 
 -- Draws the first card from the deck and adds it to the hand
@@ -121,13 +105,9 @@ shuffle gen hand = fst(shuffle' (Empty, hand) gen)
 shuffle' :: (Hand, Hand) -> StdGen -> (Hand, Hand)
 shuffle' (hand1, Empty) _ = (hand1, Empty)
 shuffle' (hand1, hand2) g = shuffle' ((Add drawnCard hand1), restHand) nextGen
-  where restHand  = fst(drawTuple)
-        drawnCard = snd(drawTuple)
-        drawTuple = drawCard hand2 index
-        index     = fst(randTuple)
-        nextGen   = snd(randTuple)
-        randTuple = randomR (0, size hand2 - 1) g
-
+  where (restHand, drawnCard) = drawCard hand2 index
+        (index, nextGen)      = randomR (0, size hand2 - 1) g
+--
 -- Checks that a card still belongs to a hand after it
 -- has been shuffled
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
@@ -170,5 +150,6 @@ implementation = Interface {
   , iShuffle   = shuffle
 }
 
+-- Main method
 main :: IO ()
 main = runGame implementation
