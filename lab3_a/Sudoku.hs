@@ -1,7 +1,8 @@
 module Sudoku where
 
 import Test.QuickCheck
-import Data.Maybe(isNothing, isJust)
+import Data.Maybe(isNothing, isJust, fromMaybe)
+import Numeric
 -------------------------------------------------------------------------
 
 
@@ -30,14 +31,16 @@ allBlankSudoku = Sudoku (replicate 9 (replicate 9 (Nothing::Maybe Int)))
 -- puzzle
 isSudoku :: Sudoku -> Bool
 isSudoku sud =  isCorrLen (rows sud) &&
-                and [ isCorrLen col | col <- rows sud] &&
+                and [ isCorrLen row | row <- rows sud] &&
                 isNums sud
+
+-- borde bryta ut listcomprehension till en egen funktion
 
 isCorrLen :: [a] -> Bool
 isCorrLen a = length a == 9
 
 isNums :: Sudoku -> Bool
-isNums sud = and[and [ isCorNum pos | pos <- col ] | col <- rows sud ]
+isNums sud = and[and [ isCorNum pos | pos <- row ] | row <- rows sud ]
 
 isCorNum :: Maybe Int -> Bool
 isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
@@ -45,13 +48,23 @@ isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
 
 -- isSolved sud checks if sud is already solved, i.e. there are no blanks
 isSolved :: Sudoku -> Bool
-isSolved sud = not $ or[or [ isNothing pos | pos <- col ] | col <- rows sud ]
+isSolved sud = not $ or[or [ isNothing pos | pos <- row ] | row <- rows sud ]
 
 -------------------------------------------------------------------------
 
 -- printSudoku sud prints a representation of the sudoku sud on the screen
 printSudoku :: Sudoku -> IO ()
-printSudoku = undefined
+printSudoku sud = putStr $ unlines [concat l | l <- convToString sud]
+
+convToString :: Sudoku -> [[String]]
+convToString sud = [[ convNumToString pos | pos <- row ] | row <- rows sud ]
+
+convNumToString :: Maybe Int -> String
+convNumToString i
+    | isNothing i = "."
+    | otherwise = show $ fromMaybe 0 i
+
+
 
 -- readSudoku file reads from the file, and either delivers it, or stops
 -- if the file did not contain a sudoku
