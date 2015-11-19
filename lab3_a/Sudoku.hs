@@ -4,8 +4,6 @@ import Test.QuickCheck
 import Data.Maybe(isNothing, isJust)
 -------------------------------------------------------------------------
 
-data Sudoku = Sudoku { rows :: [[Maybe Int]] }
- deriving ( Show, Eq )
 
 example :: Sudoku
 example =
@@ -20,6 +18,9 @@ example =
       , [Nothing,Just 8, Just 3, Nothing,Nothing,Nothing,Nothing,Just 6, Nothing]
       , [Nothing,Nothing,Just 7, Just 6, Just 9, Nothing,Nothing,Just 4, Just 3]
       ]
+
+data Sudoku = Sudoku { rows :: [[Maybe Int]] }
+ deriving ( Show, Eq )
 
 -- allBlankSudoku is a sudoku with just blanks
 allBlankSudoku :: Sudoku
