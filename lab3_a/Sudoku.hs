@@ -25,7 +25,7 @@ data Sudoku = Sudoku { rows :: [[Maybe Int]] }
 
 -- allBlankSudoku is a sudoku with just blanks
 allBlankSudoku :: Sudoku
-allBlankSudoku = Sudoku (replicate 9 (replicate 9 (Nothing::Maybe Int)))
+allBlankSudoku = Sudoku (replicate 9 (replicate 9 Nothing))
 
 -- isSudoku sud checks if sud is really a valid representation of a sudoku
 -- puzzle
@@ -40,7 +40,7 @@ isCorrLen :: [a] -> Bool
 isCorrLen a = length a == 9
 
 isNums :: Sudoku -> Bool
-isNums sud = and[and [ isCorNum pos | pos <- row ] | row <- rows sud ]
+isNums sud = compareSoduku sud and isCorNum 
 
 isCorNum :: Maybe Int -> Bool
 isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
@@ -48,7 +48,9 @@ isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
 
 -- isSolved sud checks if sud is already solved, i.e. there are no blanks
 isSolved :: Sudoku -> Bool
-isSolved sud = not $ or[or [ isNothing pos | pos <- row ] | row <- rows sud ]
+isSolved sud = not $ compareSoduku sud or isNothing 
+
+compareSoduku sud fold func = fold [ fold [ func pos | pos <- row ] | row <- rows sud ]
 
 -------------------------------------------------------------------------
 
