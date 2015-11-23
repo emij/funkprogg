@@ -77,7 +77,9 @@ readSudoku = undefined
 
 -- cell generates an arbitrary cell in a Sudoku
 cell :: Gen (Maybe Int)
-cell = undefined
+cell = oneof [do val <- choose (1,9)
+                 return (Just val),
+                 return Nothing]
 
 -- an instance for generating Arbitrary Sudokus
 instance Arbitrary Sudoku where
