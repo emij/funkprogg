@@ -52,7 +52,8 @@ isSolved sud = not $ compareSoduku sud or isNothing
 
 compareSoduku :: Sudoku -> ([Bool] -> Bool)
                     -> (Maybe Int -> Bool) -> Bool
-compareSoduku sud fold func = fold [ fold [ func pos | pos <- row ] | row <- rows sud ]
+compareSoduku sud fold func = 
+                    fold [ fold [ func pos | pos <- row ] | row <- rows sud ]
 
 -------------------------------------------------------------------------
 
@@ -68,12 +69,15 @@ convNumToString i
     | isNothing i = "."
     | otherwise = show $ fromMaybe 0 i
 
-
-
 -- readSudoku file reads from the file, and either delivers it, or stops
 -- if the file did not contain a sudoku
 readSudoku :: FilePath -> IO Sudoku
-readSudoku = undefined
+readSudoku path = do 
+                    file <- readFile path
+                    let allLines = lines file
+                    createSoduku allLines
+
+--createSoduku :: [String] -> IO Sudoku
 
 -------------------------------------------------------------------------
 
