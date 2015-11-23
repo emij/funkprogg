@@ -40,7 +40,7 @@ isCorrLen :: [a] -> Bool
 isCorrLen a = length a == 9
 
 isNums :: Sudoku -> Bool
-isNums sud = compareSoduku sud and isCorNum 
+isNums sud = compareSoduku sud and isCorNum
 
 isCorNum :: Maybe Int -> Bool
 isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
@@ -48,8 +48,10 @@ isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
 
 -- isSolved sud checks if sud is already solved, i.e. there are no blanks
 isSolved :: Sudoku -> Bool
-isSolved sud = not $ compareSoduku sud or isNothing 
+isSolved sud = not $ compareSoduku sud or isNothing
 
+compareSoduku :: Sudoku -> ([Bool] -> Bool)
+                    -> (Maybe Int -> Bool) -> Bool
 compareSoduku sud fold func = fold [ fold [ func pos | pos <- row ] | row <- rows sud ]
 
 -------------------------------------------------------------------------
