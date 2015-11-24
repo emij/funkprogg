@@ -5,6 +5,7 @@ import Data.Maybe(isNothing, isJust, fromMaybe)
 import Numeric
 import System.IO
 import Data.Char(digitToInt, isDigit)
+import Data.List(nub)
 -------------------------------------------------------------------------
 
 
@@ -42,7 +43,8 @@ isCorrLen :: [a] -> Bool
 isCorrLen a = length a == 9
 
 isNums :: Sudoku -> Bool
-isNums sud = compareSoduku sud and isCorNum
+isNums sud = (all.all) isCorNum $ rows sud
+
 
 isCorNum :: Maybe Int -> Bool
 isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
@@ -50,12 +52,7 @@ isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
 
 -- isSolved sud checks if sud is already solved, i.e. there are no blanks
 isSolved :: Sudoku -> Bool
-isSolved sud = not $ compareSoduku sud or isNothing
-
-compareSoduku :: Sudoku -> ([Bool] -> Bool)
-                    -> (Maybe Int -> Bool) -> Bool
-compareSoduku sud fold func = 
-                    fold [ fold [ func pos | pos <- row ] | row <- rows sud ]
+isSolved sud = (all.all) isJust $ rows sud
 
 -------------------------------------------------------------------------
 
@@ -74,12 +71,12 @@ convNumToString i
 -- readSudoku file reads from the file, and either delivers it, or stops
 -- if the file did not contain a sudoku
 readSudoku :: FilePath -> IO Sudoku
-readSudoku path = do 
+readSudoku path = do
                     file <- readFile path
                     let allLines = lines file
                     let sudoku = createSudoku allLines
                     if isSudoku sudoku then return sudoku else error "Bad Sudoku"
-                      
+
 
 createSudoku :: [String] -> Sudoku
 createSudoku lines = Sudoku [ createSudokuRow line | line <- lines ]
@@ -88,7 +85,7 @@ createSudokuRow :: String -> [Maybe Int]
 createSudokuRow line = [ createCell char | char <- line ]
 
 createCell :: Char -> Maybe Int
-createCell '.' = Nothing 
+createCell '.' = Nothing
 createCell c = Just $ if isDigit c then digitToInt c else error "Bad Sudoku - Non digit in Sudoku"
 
 
@@ -97,9 +94,15 @@ createCell c = Just $ if isDigit c then digitToInt c else error "Bad Sudoku - No
 
 -- cell generates an arbitrary cell in a Sudoku
 cell :: Gen (Maybe Int)
+cell = frequency [ (8, return Nothing)
+                        , (2, do n <- choose (1, 9)
+                                 return (Just n))
+                        ]
+{-
 cell = oneof [do val <- choose (1,9)
                  return (Just val),
                  return Nothing]
+-}
 
 -- an instance for generating Arbitrary Sudokus
 instance Arbitrary Sudoku where
@@ -107,4 +110,21 @@ instance Arbitrary Sudoku where
     do rows <- sequence [ sequence [ cell | j <- [1..9] ] | i <- [1..9] ]
        return (Sudoku rows)
 
+prop_Sudoku :: Sudoku -> Bool
+prop_Sudoku sud = isSudoku sud
 -------------------------------------------------------------------------
+type Block = [Maybe Int]
+
+
+isOkayBlock :: Block -> Bool
+isOkayBlock block = containsDuplicates [ cell | cell <- block, isJust cell ]
+    where containsDuplicates c =
+                length c == length (nub c)
+
+blocks :: Sudoku -> [Block]
+blocks = undefined
+--blocks sud = [ row | row <- rows ]
+
+
+
+
