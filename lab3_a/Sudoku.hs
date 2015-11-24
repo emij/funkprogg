@@ -3,6 +3,8 @@ module Sudoku where
 import Test.QuickCheck
 import Data.Maybe(isNothing, isJust, fromMaybe)
 import Numeric
+import System.IO
+import Data.Char(digitToInt, isDigit)
 -------------------------------------------------------------------------
 
 
@@ -75,9 +77,21 @@ readSudoku :: FilePath -> IO Sudoku
 readSudoku path = do 
                     file <- readFile path
                     let allLines = lines file
-                    createSoduku allLines
+                    let sudoku = createSudoku allLines
+                    if isSudoku sudoku then return sudoku else error "Bad Sudoku"
+                      
 
---createSoduku :: [String] -> IO Sudoku
+createSudoku :: [String] -> Sudoku
+createSudoku lines = Sudoku [ createSudokuRow line | line <- lines ]
+
+createSudokuRow :: String -> [Maybe Int]
+createSudokuRow line = [ createCell char | char <- line ]
+
+createCell :: Char -> Maybe Int
+createCell '.' = Nothing 
+createCell c = Just $ if isDigit c then digitToInt c else error "Bad Sudoku - Non digit in Sudoku"
+
+
 
 -------------------------------------------------------------------------
 
