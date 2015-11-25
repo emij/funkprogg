@@ -1,11 +1,12 @@
 module Sudoku where
 
 import Test.QuickCheck
-import Data.Maybe(isNothing, isJust, fromMaybe)
+import Data.Maybe(isNothing, isJust, fromMaybe, fromJust)
 import Numeric
 import System.IO
 import Data.Char(digitToInt, isDigit)
 import Data.List(nub, transpose, concat)
+import Data.Ix(inRange)
 -------------------------------------------------------------------------
 
 
@@ -23,9 +24,12 @@ example =
       , [Nothing,Nothing,Just 7, Just 6, Just 9, Nothing,Nothing,Just 4, Just 3]
       ]
 
-data Sudoku = Sudoku { rows :: [[Maybe Int]] }
+data Sudoku = Sudoku { rows :: [Block] }
  deriving ( Show, Eq )
-
+type Block = [Cell]
+-- We have chosen to call a Maybe Int a cell since its terms are more logical
+-- in the sense of creating Sudoku
+type Cell = Maybe Int
 -- allBlankSudoku is a sudoku with just blanks
 allBlankSudoku :: Sudoku
 allBlankSudoku = Sudoku (replicate 9 (replicate 9 Nothing))
@@ -34,21 +38,21 @@ allBlankSudoku = Sudoku (replicate 9 (replicate 9 Nothing))
 -- puzzle
 isSudoku :: Sudoku -> Bool
 isSudoku sud =  isCorrLen (rows sud) &&
-                and [ isCorrLen row | row <- rows sud] &&
+                all isCorrLen (rows sud) &&
                 isNums sud
 
--- borde bryta ut listcomprehension till en egen funktion
-
+-- Verifies that a list of blocks or cells are of length 9
 isCorrLen :: [a] -> Bool
 isCorrLen a = length a == 9
 
+-- Verifies that all cells has valid values
 isNums :: Sudoku -> Bool
 isNums sud = (all.all) isCorNum $ rows sud
 
-
-isCorNum :: Maybe Int -> Bool
-isCorNum pos = (Just 0 < pos && pos <= Just 9) || isNothing pos
-
+-- Takes a cell and determines if it has a valid value
+isCorNum :: Cell -> Bool
+isCorNum Nothing = True
+isCorNum pos = inRange (1, 9) (fromJust pos)
 
 -- isSolved sud checks if sud is already solved, i.e. there are no blanks
 isSolved :: Sudoku -> Bool
@@ -60,13 +64,15 @@ isSolved sud = (all.all) isJust $ rows sud
 printSudoku :: Sudoku -> IO ()
 printSudoku sud = putStr $ unlines [concat l | l <- convToString sud]
 
+-- Converts a Sudoku to a string representation
 convToString :: Sudoku -> [[String]]
-convToString sud = [[ convNumToString pos | pos <- row ] | row <- rows sud ]
+convToString sud = (map.map) convCellToString (rows sud)
 
-convNumToString :: Maybe Int -> String
-convNumToString i
+-- Converts a cell to a string representation
+convCellToString :: Cell -> String
+convCellToString i
     | isNothing i = "."
-    | otherwise = show $ fromMaybe 0 i
+    | otherwise   = show $ fromMaybe 0 i
 
 -- readSudoku file reads from the file, and either delivers it, or stops
 -- if the file did not contain a sudoku
@@ -75,36 +81,32 @@ readSudoku path = do
                     file <- readFile path
                     let allLines = lines file
                     let sudoku = createSudoku allLines
-                    if isSudoku sudoku then return sudoku else error "Bad Sudoku"
+                    if isSudoku sudoku then return sudoku 
+                    else error "Bad Sudoku"
 
-
+-- Creates a sudoku from a list of strings
 createSudoku :: [String] -> Sudoku
-createSudoku lines = Sudoku [ createSudokuRow line | line <- lines ]
+createSudoku ll = Sudoku $ map createSudokuRow ll
 
-createSudokuRow :: String -> [Maybe Int]
-createSudokuRow line = [ createCell char | char <- line ]
+-- Creates a Block from a list of strings
+createSudokuRow :: String -> Block
+createSudokuRow line = map createCell line
 
-createCell :: Char -> Maybe Int
+-- Creates a Block from a list of strings
+createCell :: Char -> Cell
 createCell '.' = Nothing
-createCell c = Just $ if isDigit c then digitToInt c else error "Bad Sudoku - Non digit in Sudoku"
-
-
+createCell c   = Just $ if isDigit c then digitToInt c 
+                        else error "Bad Sudoku - Non digit in Sudoku"
 
 -------------------------------------------------------------------------
 
 -- cell generates an arbitrary cell in a Sudoku
-cell :: Gen (Maybe Int)
-cell = frequency [ (8, return Nothing)
-                        , (2, do n <- choose (1, 9)
-                                 return (Just n))
-                        ]
-{-
-cell = oneof [do val <- choose (1,9)
-                 return (Just val),
-                 return Nothing]
--}
+cell :: Gen (Cell)
+cell = frequency [ (8, return Nothing), 
+                   (2, do n <- choose (1, 9) 
+                          return (Just n)) ]
 
--- an instance for generating Arbi:trary Sudokus
+-- an instance for generating Arbitrary Sudokus
 instance Arbitrary Sudoku where
   arbitrary =
     do rows <- sequence [ sequence [ cell | j <- [1..9] ] | i <- [1..9] ]
@@ -112,23 +114,31 @@ instance Arbitrary Sudoku where
 
 prop_Sudoku :: Sudoku -> Bool
 prop_Sudoku = isSudoku
+
 -------------------------------------------------------------------------
-type Block = [Maybe Int]
 
+-- Verifies that a Sudoku is okay (No duplicates)
+isOkay :: Sudoku -> Bool
+isOkay sud = all isOkayBlock (blocks sud)
+
+-- Verifies that a block is okay (No duplicates)
 isOkayBlock :: Block -> Bool
-isOkayBlock block = containsDuplicates [ cell | cell <- block, isJust cell ]
+isOkayBlock block = containsDuplicates [ c | c <- block, isJust c ]
     where containsDuplicates c =
-                length c == length (nub c)
+            length c == length (nub c)
 
+-- Creates all possible blocks from a Sudoku
 blocks :: Sudoku -> [Block]
 blocks sud = rows sud ++ transpose (rows sud) ++ squareBlocks sud
 
+-- Generates all squareBlocks as Blocks (Used to determine duplicates)
+squareBlocks :: Sudoku -> [Block]
 squareBlocks sud
   | null (rows sud) = []
-  | otherwise       = squares (transpose (take 3 (rows sud))) ++ blocks (Sudoku (drop 3 (rows sud)))
-  where squares b
-          | null b    = []
-          | otherwise = concat (take 3 b) : squares (drop 3 b)
+  | otherwise       = squares (transpose (take 3 (rows sud))) 
+                      ++ blocks (Sudoku (drop 3 (rows sud)))
+    where squares b
+            | null b    = []
+            | otherwise = concat (take 3 b) : squares (drop 3 b)
 
-isOkay :: Sudoku -> Bool
-isOkay sud = all isOkayBlock (blocks sud)
+-------------------------------------------------------------------------
