@@ -104,17 +104,16 @@ cell = oneof [do val <- choose (1,9)
                  return Nothing]
 -}
 
--- an instance for generating Arbitrary Sudokus
+-- an instance for generating Arbi:trary Sudokus
 instance Arbitrary Sudoku where
   arbitrary =
     do rows <- sequence [ sequence [ cell | j <- [1..9] ] | i <- [1..9] ]
        return (Sudoku rows)
 
 prop_Sudoku :: Sudoku -> Bool
-prop_Sudoku sud = isSudoku sud
+prop_Sudoku = isSudoku
 -------------------------------------------------------------------------
 type Block = [Maybe Int]
-
 
 isOkayBlock :: Block -> Bool
 isOkayBlock block = containsDuplicates [ cell | cell <- block, isJust cell ]
@@ -122,15 +121,14 @@ isOkayBlock block = containsDuplicates [ cell | cell <- block, isJust cell ]
                 length c == length (nub c)
 
 blocks :: Sudoku -> [Block]
-blocks sud
-  | rows sud == [] = []
-  | otherwise = getSq (transpose (take 3 (rows sud))) ++ blocks (Sudoku (drop 3 (rows sud)))
---blocks sud = [ row | row <- rows ]
-getSq :: [Block] -> [Block]
-getSq b
-  | b == [] = []
-  | otherwise = concat (take 3 b) : getSq (drop 3 b)
+blocks sud = rows sud ++ transpose (rows sud) ++ squareBlocks sud
 
+squareBlocks sud
+  | null (rows sud) = []
+  | otherwise       = squares (transpose (take 3 (rows sud))) ++ blocks (Sudoku (drop 3 (rows sud)))
+  where squares b
+          | null b    = []
+          | otherwise = concat (take 3 b) : squares (drop 3 b)
 
-
-
+isOkay :: Sudoku -> Bool
+isOkay sud = all isOkayBlock (blocks sud)
