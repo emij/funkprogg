@@ -5,7 +5,7 @@ import Data.Maybe(isNothing, isJust, fromMaybe)
 import Numeric
 import System.IO
 import Data.Char(digitToInt, isDigit)
-import Data.List(nub)
+import Data.List(nub, transpose, concat)
 -------------------------------------------------------------------------
 
 
@@ -122,8 +122,14 @@ isOkayBlock block = containsDuplicates [ cell | cell <- block, isJust cell ]
                 length c == length (nub c)
 
 blocks :: Sudoku -> [Block]
-blocks = undefined
+blocks sud
+  | rows sud == [] = []
+  | otherwise = getSq (transpose (take 3 (rows sud))) ++ blocks (Sudoku (drop 3 (rows sud)))
 --blocks sud = [ row | row <- rows ]
+getSq :: [Block] -> [Block]
+getSq b
+  | b == [] = []
+  | otherwise = concat (take 3 b) : getSq (drop 3 b)
 
 
 
