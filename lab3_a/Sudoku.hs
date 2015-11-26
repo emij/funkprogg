@@ -81,29 +81,25 @@ readSudoku path = do
                     file <- readFile path
                     let allLines = lines file
                     let sudoku = createSudoku allLines
-                    if isSudoku sudoku then return sudoku 
+                    if isSudoku sudoku then return sudoku
                     else error "Bad Sudoku"
 
 -- Creates a sudoku from a list of strings
 createSudoku :: [String] -> Sudoku
-createSudoku ll = Sudoku $ map createSudokuRow ll
-
--- Creates a Block from a list of strings
-createSudokuRow :: String -> Block
-createSudokuRow line = map createCell line
+createSudoku ll = Sudoku $ (map.map) createCell ll
 
 -- Creates a Block from a list of strings
 createCell :: Char -> Cell
 createCell '.' = Nothing
-createCell c   = Just $ if isDigit c then digitToInt c 
+createCell c   = Just $ if isDigit c then digitToInt c
                         else error "Bad Sudoku - Non digit in Sudoku"
 
 -------------------------------------------------------------------------
 
 -- cell generates an arbitrary cell in a Sudoku
 cell :: Gen (Cell)
-cell = frequency [ (8, return Nothing), 
-                   (2, do n <- choose (1, 9) 
+cell = frequency [ (8, return Nothing),
+                   (2, do n <- choose (1, 9)
                           return (Just n)) ]
 
 -- an instance for generating Arbitrary Sudokus
@@ -135,7 +131,7 @@ blocks sud = rows sud ++ transpose (rows sud) ++ squareBlocks sud
 squareBlocks :: Sudoku -> [Block]
 squareBlocks sud
   | null (rows sud) = []
-  | otherwise       = squares (transpose (take 3 (rows sud))) 
+  | otherwise       = squares (transpose (take 3 (rows sud)))
                       ++ blocks (Sudoku (drop 3 (rows sud)))
     where squares b
             | null b    = []
