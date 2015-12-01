@@ -157,11 +157,17 @@ isBlank sud (r, c) = isNothing $ rows sud !! r !! c
 -------------------------------------------------------------------------
 
 (!!=) :: [a] -> (Int,a) -> [a]
-(!!=) al (i, val) = a ++ val : as
-      where (a,_:as) = splitAt i al
+(!!=) al (i, val)
+  | length al <= i = error "index too large" 
+  | i < 0          = error "negative index" 
+  | otherwise      = a ++ val : as
+          where (a,_:as) = splitAt i al
 
-update :: Sudoku -> Pos -> Maybe Int -> Sudoku
+update :: Sudoku -> Pos -> Cell -> Sudoku
 update sud (r, c) val = Sudoku $ rows sud !!= (r, updatedRow)
       where updatedRow = row !!= (c, val)
             row        = rows sud !! r
 
+prop_ValueUpdated :: Sudoku -> Pos -> Cell -> Bool
+prop_ValueUpdated sud (r, c) val = rows updatedSudoku !! r !! c == val
+      where updatedSudoku = update sud (r, c) val
