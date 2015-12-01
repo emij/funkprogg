@@ -147,5 +147,9 @@ indexToPos ps = iTP ps 0
   where iTP [] y = []
         iTP (p:ps) y = [ (y,x) | x <- p] ++ iTP ps (y+1)
 
+prop_Blanks :: Sudoku -> Bool
+prop_Blanks sud = all (isBlank sud) (blanks sud)
 
+isBlank :: Sudoku -> Pos -> Bool
+isBlank sud pos = isNothing $ (rows sud !! fst(pos)) !! snd(pos)
 
