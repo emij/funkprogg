@@ -137,6 +137,7 @@ squareBlocks sud = chunksOf 9
 
 prop_Blocks :: Sudoku -> Bool
 prop_Blocks sud = (length $ blocks sud) == (3*9)
+
 -------------------------------------------------------------------------
 type Pos = (Int, Int)
 
@@ -152,4 +153,10 @@ prop_Blanks sud = all (isBlank sud) (blanks sud)
 
 isBlank :: Sudoku -> Pos -> Bool
 isBlank sud pos = isNothing $ (rows sud !! fst(pos)) !! snd(pos)
+
+-------------------------------------------------------------------------
+
+(!!=) :: [a] -> (Int,a) -> [a]
+(!!=) al (i, val) = a ++ val : as
+      where (a,_:as) = splitAt i al
 
