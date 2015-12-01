@@ -7,6 +7,7 @@ import System.IO
 import Data.Char(digitToInt, isDigit)
 import Data.List(nub, transpose, concat)
 import Data.Ix(inRange)
+import Data.List.Split
 -------------------------------------------------------------------------
 
 
@@ -128,13 +129,10 @@ blocks sud = rows sud ++ transpose (rows sud) ++ squareBlocks sud
 
 -- Generates all squareBlocks as Blocks (Used to determine duplicates)
 squareBlocks :: Sudoku -> [Block]
-squareBlocks sud
-  | null (rows sud) = []
-  | otherwise       = squares (transpose (take 3 (rows sud)))
-                      ++ squareBlocks (Sudoku (drop 3 (rows sud)))
-    where squares b
-            | null b    = []
-            | otherwise = concat (take 3 b) : squares (drop 3 b)
+squareBlocks sud = chunksOf 9
+                    (concat $ concat
+                      [transpose c | c <- (chunksOf 3 (rows sud))])
+
 
 prop_Blocks :: Sudoku -> Bool
 prop_Blocks sud = (length $ blocks sud) == (3*9)
