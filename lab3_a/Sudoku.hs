@@ -131,7 +131,7 @@ squareBlocks :: Sudoku -> [Block]
 squareBlocks sud
   | null (rows sud) = []
   | otherwise       = squares (transpose (take 3 (rows sud)))
-                      ++ blocks (Sudoku (drop 3 (rows sud)))
+                      ++ squareBlocks (Sudoku (drop 3 (rows sud)))
     where squares b
             | null b    = []
             | otherwise = concat (take 3 b) : squares (drop 3 b)
