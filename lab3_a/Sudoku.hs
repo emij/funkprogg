@@ -98,8 +98,8 @@ createCell c   = Just $ if isDigit c then digitToInt c
 -- cell generates an arbitrary cell in a Sudoku
 cell :: Gen (Cell)
 cell = frequency [ (8, return Nothing),
-                   (2, do n <- choose (1, 9)
-                          return (Just n)) ]
+                   (2, choose (1,9) >>= return . Just)
+                    ]
 
 -- an instance for generating Arbitrary Sudokus
 instance Arbitrary Sudoku where
