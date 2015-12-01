@@ -8,6 +8,7 @@ import Data.Char(digitToInt, isDigit)
 import Data.List(nub, transpose, concat)
 import Data.Ix(inRange)
 import Data.List.Split
+import Data.List
 -------------------------------------------------------------------------
 
 
@@ -137,3 +138,14 @@ squareBlocks sud = chunksOf 9
 prop_Blocks :: Sudoku -> Bool
 prop_Blocks sud = (length $ blocks sud) == (3*9)
 -------------------------------------------------------------------------
+type Pos = (Int, Int)
+
+blanks :: Sudoku -> [Pos]
+blanks sud = indexToPos [ elemIndices Nothing row | row <- (rows sud)]
+
+indexToPos ts = iTP ts 0
+  where iTP [] b = []
+        iTP (t:ts) b = [ (b,a) | a <- t] ++ iTP ts (b+1)
+
+
+
