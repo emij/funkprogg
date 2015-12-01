@@ -143,9 +143,9 @@ type Pos = (Int, Int)
 blanks :: Sudoku -> [Pos]
 blanks sud = indexToPos [ elemIndices Nothing row | row <- (rows sud)]
 
-indexToPos ts = iTP ts 0
-  where iTP [] b = []
-        iTP (t:ts) b = [ (b,a) | a <- t] ++ iTP ts (b+1)
+indexToPos ps = iTP ps 0
+  where iTP [] y = []
+        iTP (p:ps) y = [ (y,x) | x <- p] ++ iTP ps (y+1)
 
 
 
