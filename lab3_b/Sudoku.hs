@@ -152,11 +152,16 @@ prop_Blanks :: Sudoku -> Bool
 prop_Blanks sud = all (isBlank sud) (blanks sud)
 
 isBlank :: Sudoku -> Pos -> Bool
-isBlank sud pos = isNothing $ (rows sud !! fst(pos)) !! snd(pos)
+isBlank sud (r, c) = isNothing $ rows sud !! r !! c
 
 -------------------------------------------------------------------------
 
 (!!=) :: [a] -> (Int,a) -> [a]
 (!!=) al (i, val) = a ++ val : as
       where (a,_:as) = splitAt i al
+
+update :: Sudoku -> Pos -> Maybe Int -> Sudoku
+update sud (r, c) val = Sudoku $ rows sud !!= (r, updatedRow)
+      where updatedRow = row !!= (c, val)
+            row        = rows sud !! r
 
