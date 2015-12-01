@@ -70,9 +70,8 @@ convToString sud = (map.map) convCellToString (rows sud)
 
 -- Converts a cell to a string representation
 convCellToString :: Cell -> String
-convCellToString i
-    | isNothing i = "."
-    | otherwise   = show $ fromMaybe 0 i
+convCellToString Nothing = "."
+convCellToString (Just i) = show i
 
 -- readSudoku file reads from the file, and either delivers it, or stops
 -- if the file did not contain a sudoku
@@ -137,4 +136,6 @@ squareBlocks sud
             | null b    = []
             | otherwise = concat (take 3 b) : squares (drop 3 b)
 
+prop_Blocks :: Sudoku -> Bool
+prop_Blocks sud = (length $ blocks sud) == (3*9)
 -------------------------------------------------------------------------
