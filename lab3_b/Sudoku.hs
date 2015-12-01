@@ -1,7 +1,7 @@
 module Sudoku where
 
 import Test.QuickCheck
-import Data.Maybe(isNothing, isJust, fromMaybe, fromJust)
+import Data.Maybe(isNothing, isJust, fromMaybe, fromJust, catMaybes)
 import Numeric
 import System.IO
 import Data.Char(digitToInt, isDigit)
@@ -173,7 +173,10 @@ prop_ValueUpdated sud (r, c) val = rows updatedSudoku !! r !! c == val
       where updatedSudoku = update sud (r, c) val
 
 candidates :: Sudoku -> Pos -> [Int]
-candidates sud (r,c) = [1..9] \\ (nub $  [ fromJust c | c <- (existingValues sud (r,c)), isJust c])
-  where existingValues sud (r,c) = rows sud !! r ++ (transpose $ rows sud) !! c ++ getSq sud (r,c)
-        getSq sud (r,c) = squareBlocks sud !! ((r `div` 3)*3 + c `div` 3)
+candidates sud (r, c) = [1..9] \\ nonCandidates
+  where nonCandidates = nub $ catMaybes allExistingValues
+        allExistingValues = rows sud !! r 
+                            ++ (transpose $ rows sud) !! c 
+                            ++ squareBlocks sud !! indexOfSquare
+        indexOfSquare = r `div` 3 * 3 + c `div` 3
 
