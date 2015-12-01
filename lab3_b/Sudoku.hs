@@ -158,8 +158,8 @@ isBlank sud (r, c) = isNothing $ rows sud !! r !! c
 
 (!!=) :: [a] -> (Int,a) -> [a]
 (!!=) al (i, val)
-  | length al <= i = error "index too large" 
-  | i < 0          = error "negative index" 
+  | length al <= i = error "index too large"
+  | i < 0          = error "negative index"
   | otherwise      = a ++ val : as
           where (a,_:as) = splitAt i al
 
@@ -171,3 +171,9 @@ update sud (r, c) val = Sudoku $ rows sud !!= (r, updatedRow)
 prop_ValueUpdated :: Sudoku -> Pos -> Cell -> Bool
 prop_ValueUpdated sud (r, c) val = rows updatedSudoku !! r !! c == val
       where updatedSudoku = update sud (r, c) val
+
+candidates :: Sudoku -> Pos -> [Int]
+candidates sud (r,c) = [1..9] \\ (nub $  [ fromJust c | c <- (existingValues sud (r,c)), isJust c])
+  where existingValues sud (r,c) = rows sud !! r ++ (transpose $ rows sud) !! c ++ getSq sud (r,c)
+        getSq sud (r,c) = squareBlocks sud !! ((r `div` 3)*3 + c `div` 3)
+
