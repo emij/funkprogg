@@ -1,11 +1,10 @@
 module Sudoku where
 
 import Test.QuickCheck
-import Data.Maybe(isNothing, isJust, fromMaybe, fromJust, catMaybes)
+import Data.Maybe(isNothing, isJust, fromMaybe, fromJust, catMaybes, listToMaybe)
 import Numeric
 import System.IO
 import Data.Char(digitToInt, isDigit)
-import Data.List(nub, transpose, concat)
 import Data.Ix(inRange)
 import Data.List.Split
 import Data.List
@@ -98,7 +97,7 @@ createCell c   = Just $ if isDigit c then digitToInt c
 -------------------------------------------------------------------------
 
 -- cell generates an arbitrary cell in a Sudoku
-cell :: Gen (Cell)
+cell :: Gen Cell
 cell = frequency [ (8, return Nothing),
                    (2, choose (1,9) >>= return . Just)
                     ]
@@ -132,30 +131,37 @@ blocks sud = rows sud ++ transpose (rows sud) ++ squareBlocks sud
 squareBlocks :: Sudoku -> [Block]
 squareBlocks sud = chunksOf 9
                     (concat $ concat
-                      [transpose c | c <- (chunksOf 3 (rows sud))])
+                      [transpose c | c <- chunksOf 3 (rows sud)])
 
 
 prop_Blocks :: Sudoku -> Bool
-prop_Blocks sud = (length $ blocks sud) == (3*9)
+prop_Blocks sud = length (blocks sud) == (3*9)
 
 -------------------------------------------------------------------------
 type Pos = (Int, Int)
 
+-- Generates a list of positions of all the blanks in the Sudoku
 blanks :: Sudoku -> [Pos]
-blanks sud = indexToPos [ elemIndices Nothing row | row <- (rows sud)]
+blanks sud = indexToPos [ elemIndices Nothing row | row <- rows sud]
 
-indexToPos ps = iTP ps 0
-  where iTP [] y = []
-        iTP (p:ps) y = [ (y,x) | x <- p] ++ iTP ps (y+1)
+-- Converts a list of lists with indexes to a list of positions
+indexToPos :: [[Int]] -> [Pos]
+indexToPos rr = iTP rr 0
+  where iTP [] _ = []
+        iTP (r:rx) rIndex = [ (rIndex,x) | x <- r] ++ iTP rx (rIndex+1)
 
+-- That all of the blanks reported really are blanks
+-- Note: Maybe should check that rest return false on isBlank?
 prop_Blanks :: Sudoku -> Bool
 prop_Blanks sud = all (isBlank sud) (blanks sud)
 
+-- Given a sudoku and a position, return true if it is blank
 isBlank :: Sudoku -> Pos -> Bool
 isBlank sud (r, c) = isNothing $ rows sud !! r !! c
 
 -------------------------------------------------------------------------
 
+-- Given a list of elements, replace the element with a new on given index
 (!!=) :: [a] -> (Int,a) -> [a]
 (!!=) al (i, val)
   | length al <= i = error "index too large"
@@ -163,42 +169,48 @@ isBlank sud (r, c) = isNothing $ rows sud !! r !! c
   | otherwise      = a ++ val : as
           where (a,_:as) = splitAt i al
 
+-- Update a position of a cell with a new Cell
 update :: Sudoku -> Pos -> Cell -> Sudoku
 update sud (r, c) val = Sudoku $ rows sud !!= (r, updatedRow)
       where updatedRow = row !!= (c, val)
             row        = rows sud !! r
 
+-- Verify that if we change a Soduku that position really have changed
+-- Note: Maybee should check that rest of the cells are the same aswell?
 prop_ValueUpdated :: Sudoku -> Pos -> Cell -> Bool
-prop_ValueUpdated sud p val = rows updatedSudoku !! fst(pos) !! snd(pos) == val
-      where updatedSudoku = update sud pos val
-            pos = (fst(p) `mod` 9, snd(p) `mod` 9)
+prop_ValueUpdated sud p val = rows updatedSudoku !! r !! c == val
+      where updatedSudoku = update sud (r, c) val
+            -- We wanted to use do and choose (0, 8) for the position but
+            -- didnt manage to get it right.
+            (r, c) = (fst p `mod` 9, snd p `mod` 9)
 
+-- Given a Sudoku and a position, return the possible candidates
 candidates :: Sudoku -> Pos -> [Int]
 candidates sud (r, c) = [1..9] \\ nonCandidates
   where nonCandidates = nub $ catMaybes allExistingValues
         allExistingValues = rows sud !! r
-                            ++ (transpose $ rows sud) !! c
+                            ++ transpose (rows sud) !! c
                             ++ squareBlocks sud !! indexOfSquare
         indexOfSquare = r `div` 3 * 3 + c `div` 3
 
 -------------------------------------------------------------------------
 
+-- Verifies that we have a correct Sudoku before starting the recursion step
+-- to solve the sudoku
 solve :: Sudoku -> Maybe Sudoku
 solve sud
   | isSudoku sud && isOkay sud = solve' sud
   | otherwise          = Nothing
 
+-- Recursivly solve the sudoku, backtrack if necessary.
 solve' :: Sudoku -> Maybe Sudoku
 solve' sud
   | isSolved sud = Just sud
   | null (blanks sud) = Nothing
   | null $ candidates sud (head $ blanks sud) = Nothing
-  | otherwise = solve'' $ catMaybes [ solve' (update sud pos (Just val)) | val <- candidates sud pos ]
+  | otherwise = listToMaybe $ catMaybes
+          [ solve' (update sud pos (Just val)) | val <- candidates sud pos ]
       where pos = head $ blanks sud
-
-solve'' ::  [Sudoku] -> Maybe Sudoku
-solve'' [] = Nothing
-solve'' (x:_)  = Just x
 
 readAndSolve :: FilePath -> IO ()
 readAndSolve path = do
