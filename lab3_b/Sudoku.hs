@@ -169,8 +169,9 @@ update sud (r, c) val = Sudoku $ rows sud !!= (r, updatedRow)
             row        = rows sud !! r
 
 prop_ValueUpdated :: Sudoku -> Pos -> Cell -> Bool
-prop_ValueUpdated sud (r, c) val = rows updatedSudoku !! r !! c == val
-      where updatedSudoku = update sud (r, c) val
+prop_ValueUpdated sud p val = rows updatedSudoku !! fst(pos) !! snd(pos) == val
+      where updatedSudoku = update sud pos val
+            pos = (fst(p) `mod` 9, snd(p) `mod` 9) 
 
 candidates :: Sudoku -> Pos -> [Int]
 candidates sud (r, c) = [1..9] \\ nonCandidates
@@ -192,6 +193,10 @@ solve' sud
   | isSolved sud = Just sud
   | null (blanks sud) = Nothing
   | null $ candidates sud (head $ blanks sud) = Nothing
-  | otherwise = solve' $ update sud pos (Just (head (candidates sud pos)))
-  | otherwise = Just $ head $ catMaybes [ solve' $ update sud pos (Just val) | val <- candidates sud pos ]
+  | otherwise = solve'' $ catMaybes [ solve' (update sud pos (Just val)) | val <- candidates sud pos ]
       where pos = head $ blanks sud
+
+solve'' ::  [Sudoku] -> Maybe Sudoku
+solve'' [] = Nothing 
+solve'' (x:_)  = Just x
+
