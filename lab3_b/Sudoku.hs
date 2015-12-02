@@ -171,13 +171,13 @@ update sud (r, c) val = Sudoku $ rows sud !!= (r, updatedRow)
 prop_ValueUpdated :: Sudoku -> Pos -> Cell -> Bool
 prop_ValueUpdated sud p val = rows updatedSudoku !! fst(pos) !! snd(pos) == val
       where updatedSudoku = update sud pos val
-            pos = (fst(p) `mod` 9, snd(p) `mod` 9) 
+            pos = (fst(p) `mod` 9, snd(p) `mod` 9)
 
 candidates :: Sudoku -> Pos -> [Int]
 candidates sud (r, c) = [1..9] \\ nonCandidates
   where nonCandidates = nub $ catMaybes allExistingValues
-        allExistingValues = rows sud !! r 
-                            ++ (transpose $ rows sud) !! c 
+        allExistingValues = rows sud !! r
+                            ++ (transpose $ rows sud) !! c
                             ++ squareBlocks sud !! indexOfSquare
         indexOfSquare = r `div` 3 * 3 + c `div` 3
 
@@ -197,6 +197,15 @@ solve' sud
       where pos = head $ blanks sud
 
 solve'' ::  [Sudoku] -> Maybe Sudoku
-solve'' [] = Nothing 
+solve'' [] = Nothing
 solve'' (x:_)  = Just x
+
+readAndSolve :: FilePath -> IO ()
+readAndSolve path = do
+                    file <- readFile path
+                    let allLines = lines file
+                    let sud = createSudoku allLines
+                    printSudoku $ fromJust (solve sud)
+                    return ()
+
 
