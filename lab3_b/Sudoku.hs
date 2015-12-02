@@ -180,3 +180,18 @@ candidates sud (r, c) = [1..9] \\ nonCandidates
                             ++ squareBlocks sud !! indexOfSquare
         indexOfSquare = r `div` 3 * 3 + c `div` 3
 
+-------------------------------------------------------------------------
+
+solve :: Sudoku -> Maybe Sudoku
+solve sud
+  | isSudoku sud && isOkay sud = solve' sud
+  | otherwise          = Nothing
+
+solve' :: Sudoku -> Maybe Sudoku
+solve' sud
+  | isSolved sud = Just sud
+  | null (blanks sud) = Nothing
+  | null $ candidates sud (head $ blanks sud) = Nothing
+  | otherwise = solve' $ update sud pos (Just (head (candidates sud pos)))
+  | otherwise = Just $ head $ catMaybes [ solve' $ update sud pos (Just val) | val <- candidates sud pos ]
+      where pos = head $ blanks sud
