@@ -221,3 +221,19 @@ readAndSolve path = do
                     return ()
 
 
+isSolutionOf :: Sudoku -> Sudoku -> Bool
+isSolutionOf sud1 sud2
+  | isSolved sud1 = compCell (concat $ rows sud1) (concat $ rows sud2)
+  | otherwise = False
+  where compCell [] _          = True
+        compCell _ []          = True
+        compCell (o:os) (c:cs) = (isNothing c || (o == c))
+                                    && compCell os cs
+
+
+
+
+
+
+
+
