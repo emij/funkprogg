@@ -17,6 +17,9 @@ type Block = [Cell]
 -- We have chosen to call a Maybe Int a cell since its terms are more logical
 -- in the sense of creating Othello
 type Cell = Maybe Disk
+type Name = String
+data Player = Player { name :: Name, disk :: Disk }
+ deriving (Show)
 data Disk = Black | White
  deriving (Show, Eq)
 type Pos = (Int, Int)
@@ -25,11 +28,18 @@ blankOthello :: Othello
 blankOthello = Othello (replicate 8 (replicate 8 Nothing))
 
 createGameBoard :: Othello
-createGameBoard = placeDisks blankOthello [((3,3), White), 
+createGameBoard = placeDisks blankOthello [((3,3), White),
                                            ((3,4), Black),
-                                           ((4,3), Black), 
+                                           ((4,3), Black),
                                            ((4,4), White)
                                           ]
+
+printPlayerName :: Player -> IO ()
+printPlayerName pl = putStrLn $ name pl
+
+printPlayerColor :: Player -> IO ()
+printPlayerColor pl = putStrLn $ show $ disk pl
+
 
 placeDisks :: Othello -> [(Pos, Disk)] -> Othello
 placeDisks oth []              = oth
