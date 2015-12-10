@@ -26,7 +26,7 @@ type Pos = (Int, Int)
 
 gameLoop :: Othello -> Player -> Player -> IO ()
 gameLoop oth pl nextPl = do
-  printOthello oth 
+  printOthello oth
   -- Print and save possible moves
   -- TODO
 
@@ -41,7 +41,7 @@ gameLoop oth pl nextPl = do
   putStrLn ""
   -- If game is finished display winner else next player turn
   if isFinished oth then do
-    putStrLn "Player won won" 
+    putStrLn "Player won won"
    else do
     putStrLn "Next player turn"
     gameLoop oth nextPl pl
@@ -100,7 +100,7 @@ diagonals o p = [diagonal o p (1,1),  -- South, East
 
 diagonal :: Othello -> Pos -> (Int, Int)-> Block
 diagonal oth (x, y) (dX, dY)
-  | valid newPos = cell oth newPos : diagonal oth newPos (dX, dY) 
+  | valid newPos = cell oth newPos : diagonal oth newPos (dX, dY)
   | otherwise = []
   where newPos = (x - dX, y - dY)
 
@@ -121,8 +121,19 @@ verticals oth (x, y) = horizontals transOthello (y, x)
 
 -------------------------------------------------------------------------
 
-playable :: Othello -> Pos -> Bool
-playable = undefined
+playable :: Othello -> Pos -> Disk -> Bool
+playable oth pos c = or [ checkDiffColor block | block <- (blocks oth pos)]
+    where checkDiffColor [] = False
+          checkDiffColor (b:bs)
+            |   isNothing b || b == Just c = False
+            |   otherwise = checkSameColor (dropWhile (==b) bs)
+          checkSameColor [] = False
+          checkSameColor (q:_) = ( q == Just c)
+
+playablePos :: Othello -> Disk -> [Pos]
+playablePos oth d = [ (x,y) | x <- [0..7],
+                              y <- [0..7],
+                              playable oth (x,y) d]
 
 -- Update a position of a disk with a new disk
 placeDisk :: Othello -> Pos -> Disk -> Othello
