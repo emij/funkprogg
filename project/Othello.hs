@@ -122,13 +122,13 @@ verticals oth (x, y) = horizontals transOthello (y, x)
 -------------------------------------------------------------------------
 
 playable :: Othello -> Pos -> Disk -> Bool
-playable oth pos c = or [ checkDiffColor block | block <- (blocks oth pos)]
-    where checkDiffColor [] = False
-          checkDiffColor (b:bs)
-            |   isNothing b || b == Just c = False
-            |   otherwise = checkSameColor (dropWhile (==b) bs)
-          checkSameColor [] = False
-          checkSameColor (q:_) = ( q == Just c)
+playable oth pos c = or [ playableBlock block | block <- blocks oth pos]
+    where playableBlock [] = False
+          playableBlock (b:bs)
+            | isNothing b || b == Just c = False
+            | otherwise = myDisk (dropWhile (==b) bs)
+          myDisk []    = False
+          myDisk (q:_) = q == Just c
 
 playablePos :: Othello -> Disk -> [Pos]
 playablePos oth d = [ (x,y) | x <- [0..7],
