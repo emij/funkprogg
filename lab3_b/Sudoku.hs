@@ -236,10 +236,3 @@ isSolutionOf sud1 sud2
 
 -- Got short on time so we have not yet implemented this propery
 --prop_SolveSound :: Sudoku -> Property
-
-
-
-
-
-
-
