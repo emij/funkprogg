@@ -212,6 +212,8 @@ solve' sud
           [ solve' (update sud pos (Just val)) | val <- candidates sud pos ]
       where pos = head $ blanks sud
 
+-- Simple function for reading and solving sudokus from file
+-- Should propably use readSudoku.
 readAndSolve :: FilePath -> IO ()
 readAndSolve path = do
                     file <- readFile path
@@ -221,6 +223,8 @@ readAndSolve path = do
                     return ()
 
 
+-- Checks that any Cell containing a number in sud2
+-- are maintained in sud1
 isSolutionOf :: Sudoku -> Sudoku -> Bool
 isSolutionOf sud1 sud2
   | isSolved sud1 = compCell (concat $ rows sud1) (concat $ rows sud2)
@@ -230,6 +234,8 @@ isSolutionOf sud1 sud2
         compCell (o:os) (c:cs) = (isNothing c || (o == c))
                                     && compCell os cs
 
+-- Got short on time so we have not yet implemented this propery
+--prop_SolveSound :: Sudoku -> Property
 
 
 
