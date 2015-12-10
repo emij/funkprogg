@@ -24,6 +24,21 @@ data Disk = Black | White
  deriving (Show, Eq)
 type Pos = (Int, Int)
 
+gameLoop :: Othello -> Player -> Player -> IO ()
+gameLoop oth pl1 pl2 = do
+  printOthello oth 
+  putStrLn "Player please play game:"
+  i <- getChar
+  -- play game with input
+  putStrLn i
+  if isFinished oth then do
+    putStrLn "Player won won" 
+   else do
+    putStrLn "Next player turn"
+    gameLoop oth pl2 pl1
+
+
+
 blankOthello :: Othello
 blankOthello = Othello (replicate 8 (replicate 8 Nothing))
 
@@ -62,7 +77,7 @@ convToString oth = (map.map) convCellToString (rows oth)
 -- Converts a cell to a string representation
 convCellToString :: Cell -> String
 convCellToString Nothing = "."
-convCellToString (Just i) = if i == Black then "■" else "□"
+convCellToString (Just i) = if i == Black then "□" else "■"
 
 -------------------------------------------------------------------------
 
