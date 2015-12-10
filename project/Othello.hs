@@ -36,7 +36,9 @@ gameLoop oth pl nextPl = do
   i <- getChar
   -- play game with input
   -- TODO
+  --
 
+  putStrLn ""
   -- If game is finished display winner else next player turn
   if isFinished oth then do
     putStrLn "Player won won" 
