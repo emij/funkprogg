@@ -12,18 +12,28 @@ import Data.Tuple
 -------------------------------------------------------------------------
 
 data Othello = Othello { rows :: [Block] }
- deriving ( Show)
+ deriving (Show)
 type Block = [Cell]
 -- We have chosen to call a Maybe Int a cell since its terms are more logical
 -- in the sense of creating Othello
 type Cell = Maybe Disk
 data Disk = Black | White
- deriving (Show)
+ deriving (Show, Eq)
 type Pos = (Int, Int)
 
-createGameBoard :: Othello
-createGameBoard = Othello (replicate 8 (replicate 8 Nothing))
+blankOthello :: Othello
+blankOthello = Othello (replicate 8 (replicate 8 Nothing))
 
+createGameBoard :: Othello
+createGameBoard = placeDisks blankOthello [((3,3), White), 
+                                           ((3,4), Black),
+                                           ((4,3), Black), 
+                                           ((4,4), White)
+                                          ]
+
+placeDisks :: Othello -> [(Pos, Disk)] -> Othello
+placeDisks oth []              = oth
+placeDisks oth ((pos,disk):xs) = placeDisks (placeDisk oth pos disk) xs
 
 -- isSolved oth checks if oth is already solved, i.e. there are no blanks
 isFinished :: Othello -> Bool
@@ -41,8 +51,8 @@ convToString oth = (map.map) convCellToString (rows oth)
 
 -- Converts a cell to a string representation
 convCellToString :: Cell -> String
-convCellToString Nothing = "O"
-convCellToString (Just i) = show i
+convCellToString Nothing = "."
+convCellToString (Just i) = if i == Black then "■" else "□"
 
 -------------------------------------------------------------------------
 
