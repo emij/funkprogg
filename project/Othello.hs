@@ -12,13 +12,17 @@ import Data.Tuple
 -------------------------------------------------------------------------
 
 data Othello = Othello { rows :: [Block] }
- deriving ( Show, Eq )
+ deriving ( Show)
 type Block = [Cell]
 -- We have chosen to call a Maybe Int a cell since its terms are more logical
 -- in the sense of creating Othello
 type Cell = Maybe Disk
 data Disk = Black | White
+ deriving (Show)
 type Pos = (Int, Int)
+
+createGameBoard :: Othello
+createGameBoard = Othello (replicate 8 (replicate 8 Nothing))
 
 
 -- isSolved oth checks if oth is already solved, i.e. there are no blanks
@@ -37,30 +41,32 @@ convToString oth = (map.map) convCellToString (rows oth)
 
 -- Converts a cell to a string representation
 convCellToString :: Cell -> String
-convCellToString Nothing = "."
+convCellToString Nothing = "O"
 convCellToString (Just i) = show i
 
 -------------------------------------------------------------------------
 
--- Creates all possible blocks from a Othello
+-- Creates all possible blocks from a Pos i an Othello
 blocks :: Othello -> Pos -> [Block]
+blocks = undefined
 
--- Generates all squareBlocks as Blocks (Used to determine duplicates)
 diagonals :: Othello -> Pos -> [Block]
+diagonals = undefined
 
 horizontals :: Othello -> Pos -> [Block]
+horizontals = undefined
 
 verticals :: Othello -> Pos -> [Block]
-verticals oth pos = horizontals (transpose oth) (swap pos)
-
+verticals oth pos = undefined
 -------------------------------------------------------------------------
 
 playable :: Othello -> Pos -> Bool
+playable = undefined
 
 -- Update a position of a disk with a new disk
 placeDisk :: Othello -> Pos -> Disk -> Othello
 placeDisk oth (r, c) val = Othello $ rows oth !!= (r, updatedRow)
-      where updatedRow = row !!= (c, val)
+      where updatedRow = row !!= (c, Just val)
             row        = rows oth !! r
 
 -- Given a list of elements, replace the element with a new on given index
