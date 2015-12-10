@@ -60,8 +60,7 @@ printPlayerName :: Player -> IO ()
 printPlayerName pl = putStrLn $ name pl
 
 printPlayerColor :: Player -> IO ()
-printPlayerColor pl = putStrLn $ show $ disk pl
-
+printPlayerColor pl = print $ disk pl
 
 placeDisks :: Othello -> [(Pos, Disk)] -> Othello
 placeDisks oth []              = oth
@@ -90,16 +89,36 @@ convCellToString (Just i) = if i == Black then "□" else "■"
 
 -- Creates all possible blocks from a Pos i an Othello
 blocks :: Othello -> Pos -> [Block]
-blocks = undefined
+blocks oth pos = horizontals oth pos ++ verticals oth pos ++ diagonals oth pos
 
 diagonals :: Othello -> Pos -> [Block]
-diagonals = undefined
+diagonals o p = [diagonal o p (1,1),  -- South, East
+                 diagonal o p (1,-1), -- North, Easy
+                 diagonal o p (-1,1), -- South, West
+                 diagonal o p (-1,-1) -- North, West
+                ]
+
+diagonal :: Othello -> Pos -> (Int, Int)-> Block
+diagonal oth (x, y) (dX, dY)
+  | valid newPos = cell oth newPos : diagonal oth newPos (dX, dY) 
+  | otherwise = []
+  where newPos = (x - dX, y - dY)
+
+cell :: Othello -> Pos -> Cell
+cell oth (x, y)= rows oth !! y !! x
+
+valid :: Pos -> Bool
+valid (x, y) = inRange (0, 7) x && inRange (0, 7) y
+
 
 horizontals :: Othello -> Pos -> [Block]
-horizontals = undefined
+horizontals oth (x, y) = [reverse (take x row), drop (x+1) row]
+  where row = rows oth !! y
 
 verticals :: Othello -> Pos -> [Block]
-verticals oth pos = undefined
+verticals oth (x, y) = horizontals transOthello (y, x)
+  where transOthello = Othello $ transpose (rows oth)
+
 -------------------------------------------------------------------------
 
 playable :: Othello -> Pos -> Bool
@@ -107,9 +126,9 @@ playable = undefined
 
 -- Update a position of a disk with a new disk
 placeDisk :: Othello -> Pos -> Disk -> Othello
-placeDisk oth (r, c) val = Othello $ rows oth !!= (r, updatedRow)
-      where updatedRow = row !!= (c, Just val)
-            row        = rows oth !! r
+placeDisk oth (x, y) val = Othello $ rows oth !!= (y, updatedRow)
+      where updatedRow = row !!= (x, Just val)
+            row        = rows oth !! y
 
 -- Given a list of elements, replace the element with a new on given index
 (!!=) :: [a] -> (Int,a) -> [a]
@@ -118,6 +137,5 @@ placeDisk oth (r, c) val = Othello $ rows oth !!= (r, updatedRow)
   | i < 0          = error "negative index"
   | otherwise      = a ++ val : as
           where (a,_:as) = splitAt i al
-
 
 -------------------------------------------------------------------------
