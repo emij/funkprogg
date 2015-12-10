@@ -2,6 +2,7 @@ module Othello where
 
 import Test.QuickCheck
 import Data.Maybe(isNothing, isJust, fromMaybe, fromJust, catMaybes, listToMaybe)
+import System.IO (hSetBuffering, BufferMode(NoBuffering), stdout)
 import Numeric
 import System.IO
 import Data.Char(digitToInt, isDigit)
@@ -24,27 +25,49 @@ data Disk = Black | White
  deriving (Show, Eq)
 type Pos = (Int, Int)
 
+main :: IO ()
+main = gameLoop createGameBoard (Player "Player1" White) (Player "Player2" Black)
+
+getNum :: String -> IO Int
+getNum promptAgain = 
+  getFromStdin promptAgain getLine isNum read
+
+isNum :: String -> Bool
+isnum [] = False 
+isNum (x:xs) = all isDigit xs && (x == '-' || isDigit x)
+
+getFromStdin :: String -> (IO a) -> (a -> Bool) -> (a -> b) -> IO b
+getFromStdin promptAgain inputF isOk transformOk = do
+  input <- inputF
+  if isOk input
+     then return $ transformOk input
+     else do
+       putStr promptAgain
+       getFromStdin promptAgain inputF isOk transformOk
+
 gameLoop :: Othello -> Player -> Player -> IO ()
 gameLoop oth pl nextPl = do
   printOthello oth
   -- Print and save possible moves
-  -- TODO
-
-  putStrLn $ name pl ++ " (" ++ show (disk pl) ++ "): "
+  let playableMoves = playablePos oth (disk pl)
+  let iPlayableMoves = zip [1..] playableMoves
+  let iPMString = intercalate ", " [ show i ++ ":" ++ show pos | (i, pos) <- iPlayableMoves ]
+  putStrLn iPMString
+  putStrLn $ name pl ++ " (" ++ show (disk pl) ++ "):"
 
   -- Player selects a move from the list.
-  i <- getChar
+  index <- getNum "Please select valid index (range)\n"
+
   -- play game with input
   -- TODO
-  --
-
-  putStrLn ""
   -- If game is finished display winner else next player turn
-  if isFinished oth then do
+  let newoth = placeDisk oth (playableMoves !! (index - 1)) (disk pl)
+
+  if isFinished newoth then do
     putStrLn "Player won won"
    else do
     putStrLn "Next player turn"
-    gameLoop oth nextPl pl
+    gameLoop newoth nextPl pl
 
 blankOthello :: Othello
 blankOthello = Othello (replicate 8 (replicate 8 Nothing))
@@ -122,13 +145,18 @@ verticals oth (x, y) = horizontals transOthello (y, x)
 -------------------------------------------------------------------------
 
 playable :: Othello -> Pos -> Disk -> Bool
-playable oth pos c = or [ playableBlock block | block <- blocks oth pos]
+playable oth pos c 
+  | occupied oth pos = False
+  | otherwise = or [ playableBlock block | block <- blocks oth pos]
     where playableBlock [] = False
           playableBlock (b:bs)
             | isNothing b || b == Just c = False
             | otherwise = myDisk (dropWhile (==b) bs)
           myDisk []    = False
           myDisk (q:_) = q == Just c
+
+occupied :: Othello -> Pos -> Bool
+occupied oth pos = isJust (cell oth pos)
 
 playablePos :: Othello -> Disk -> [Pos]
 playablePos oth d = [ (x,y) | x <- [0..7],
