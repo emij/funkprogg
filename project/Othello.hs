@@ -25,19 +25,24 @@ data Disk = Black | White
 type Pos = (Int, Int)
 
 gameLoop :: Othello -> Player -> Player -> IO ()
-gameLoop oth pl1 pl2 = do
+gameLoop oth pl nextPl = do
   printOthello oth 
-  putStrLn "Player please play game:"
+  -- Print and save possible moves
+  -- TODO
+
+  putStrLn $ name pl ++ " (" ++ show (disk pl) ++ "): "
+
+  -- Player selects a move from the list.
   i <- getChar
   -- play game with input
-  putStrLn i
+  -- TODO
+
+  -- If game is finished display winner else next player turn
   if isFinished oth then do
     putStrLn "Player won won" 
    else do
     putStrLn "Next player turn"
-    gameLoop oth pl2 pl1
-
-
+    gameLoop oth nextPl pl
 
 blankOthello :: Othello
 blankOthello = Othello (replicate 8 (replicate 8 Nothing))
