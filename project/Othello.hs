@@ -77,9 +77,10 @@ printWinner oth pl1 pl2 = do
   if isNothing winningPlayer then
     putStrLn $ "It was a draw! " ++ scoreString oth pl1 pl2 
   else 
-    putStrLn $ "Gratulations " ++ name (fromJust winningPlayer) 
-                             ++ "! You won with score " 
-                             ++ scoreString oth pl1 pl2
+    putStrLn $ "Gratulations " 
+              ++ name (fromJust winningPlayer) 
+              ++ "! You won with score " 
+              ++ scoreString oth pl1 pl2
   putStrLn "#########################"
 
 winner :: Othello -> Player -> Player -> Maybe Player
@@ -98,11 +99,12 @@ blankOthello :: Othello
 blankOthello = Othello (replicate 8 (replicate 8 Nothing))
 
 createGameBoard :: Othello
-createGameBoard = placeDisks blankOthello [((3,3), White),
-                                           ((3,4), Black),
-                                           ((4,3), Black),
-                                           ((4,4), White)
-                                          ]
+createGameBoard = placeDisks blankOthello 
+  [((3,3), White),
+   ((3,4), Black),
+   ((4,3), Black),
+   ((4,4), White)
+  ]
 
 printPlayerName :: Player -> IO ()
 printPlayerName pl = putStrLn $ name pl
