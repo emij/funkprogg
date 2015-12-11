@@ -39,7 +39,7 @@ getPlay maxI = do
 
 validNum :: String -> Bool
 validNum []     = False
-validNum (x:xs) = all isDigit (x:xs)
+validNum str = all isDigit str
 
 gameLoop :: Othello -> Player -> Player -> IO ()
 gameLoop oth pl nextPl = do
