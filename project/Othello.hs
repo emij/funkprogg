@@ -37,6 +37,7 @@ getPlay maxI = do
   then return $ read input
   else getPlay maxI
 
+-- Need own function as isDigit on an empty list returns True
 validNum :: String -> Bool
 validNum []     = False
 validNum str = all isDigit str
