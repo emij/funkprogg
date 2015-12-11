@@ -2,7 +2,6 @@ module Othello where
 
 import Test.QuickCheck
 import Data.Maybe(isNothing, isJust, fromMaybe, fromJust, catMaybes, listToMaybe)
-import System.IO (hSetBuffering, BufferMode(NoBuffering), stdout)
 import Numeric
 import System.IO
 import Data.Char(digitToInt, isDigit)
@@ -10,6 +9,7 @@ import Data.Ix(inRange)
 import Data.List.Split
 import Data.List
 import Data.Tuple
+import Control.Monad
 -------------------------------------------------------------------------
 
 data Othello = Othello { rows :: [Block] }
@@ -30,7 +30,7 @@ main = gameLoop createGameBoard (Player "Player1" White) (Player "Player2" Black
 
 getPlay :: Int -> IO Int
 getPlay maxI = do
-  putStr $ "Please select valid index (1-" ++ (show maxI) ++ "):\n"
+  putStr $ "Please select valid index (1-" ++ show maxI ++ "):\n"
   input <- getLine
 
   if validNum input && inRange (1, maxI) (read input :: Int)
@@ -47,6 +47,15 @@ gameLoop oth pl nextPl = do
   printOthello oth
   -- Print and save possible moves
   let playableMoves = playablePos oth (disk pl)
+  when (null playableMoves) (do 
+          let opponentPlayableMoves = playablePos oth (disk nextPl)
+          if null opponentPlayableMoves then 
+            printWinner oth pl nextPl 
+            -- How do we handle a early exit?
+          else 
+            gameLoop oth nextPl pl
+        )
+  
   let iPlayableMoves = zip [1..] playableMoves
   let iPMString = intercalate ", " [ show i ++ ":" ++ show pos | (i, pos) <- iPlayableMoves ]
   putStrLn iPMString
@@ -60,7 +69,7 @@ gameLoop oth pl nextPl = do
   -- If game is finished display winner else next player turn
   let newoth = placeDisk oth (playableMoves !! (index - 1)) (disk pl)
 
-  if isFinished newoth then do
+  if isFinished newoth then
     printWinner newoth pl nextPl
   else do
     putStrLn "Next player turn"
