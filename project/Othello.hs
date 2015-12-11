@@ -30,25 +30,16 @@ main = gameLoop createGameBoard (Player "Player1" White) (Player "Player2" Black
 
 getPlay :: Int -> IO Int
 getPlay maxI = do
-  putStr "Please select valid index (range)\n"
+  putStr $ "Please select valid index (1-" ++ (show maxI) ++ "):\n"
   input <- getLine
 
-  if isValidIndex input maxI
-  then do
-       index = read input
-       if inRange index (1,maxI)
-       then return index
-       else
-           getPlay maxI
-  else do
-       --putStr promptAgain
-       --getFromStdin promptAgain inputF isOk transformOk
-       getPlay maxI
+  if validNum input && inRange (1, maxI) (read input :: Int)
+  then return $ read input
+  else getPlay maxI
 
-isValidIndex :: String -> Int -> Bool
-isValidIndex [] _ = False
-isValidIndex (x:xs) maxI = all isDigit (x:xs)
-
+validNum :: String -> Bool
+validNum []     = False
+validNum (x:xs) = all isDigit (x:xs)
 
 gameLoop :: Othello -> Player -> Player -> IO ()
 gameLoop oth pl nextPl = do
@@ -58,7 +49,7 @@ gameLoop oth pl nextPl = do
   let iPlayableMoves = zip [1..] playableMoves
   let iPMString = intercalate ", " [ show i ++ ":" ++ show pos | (i, pos) <- iPlayableMoves ]
   putStrLn iPMString
-  putStrLn $ name pl ++ " (" ++ show (disk pl) ++ "):"
+  putStrLn $ name pl ++ "'s (" ++ show (disk pl) ++ ") turn!"
 
   -- Player selects a move from the list.
   index <- getPlay (length iPlayableMoves)
