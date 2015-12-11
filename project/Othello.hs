@@ -61,10 +61,38 @@ gameLoop oth pl nextPl = do
   let newoth = placeDisk oth (playableMoves !! (index - 1)) (disk pl)
 
   if isFinished newoth then do
-    putStrLn "Player won won"
-   else do
+    printWinner newoth pl nextPl
+  else do
     putStrLn "Next player turn"
     gameLoop newoth nextPl pl
+
+printWinner :: Othello -> Player -> Player -> IO ()
+printWinner oth pl1 pl2 = do 
+  putStrLn "#########################"
+  putStrLn "####   Final board   ####"
+  putStrLn "#########################"
+  printOthello oth
+  let winningPlayer = winner oth pl1 pl2
+  putStrLn "#########################"
+  if isNothing winningPlayer then
+    putStrLn $ "It was a draw! " ++ scoreString oth pl1 pl2 
+  else 
+    putStrLn $ "Gratulations " ++ name (fromJust winningPlayer) 
+                             ++ "! You won with score " 
+                             ++ scoreString oth pl1 pl2
+  putStrLn "#########################"
+
+winner :: Othello -> Player -> Player -> Maybe Player
+winner oth pl1 pl2
+  | score oth pl1 > score oth pl2 = Just pl1
+  | score oth pl2 > score oth pl1 = Just pl2
+  | otherwise                     = Nothing
+
+score :: Othello -> Player -> Int
+score oth pl = length [ d | d <- catMaybes (concat (rows oth)), d == disk pl ]
+
+scoreString :: Othello -> Player -> Player -> String
+scoreString oth pl1 pl2 = show (score oth pl1) ++ " - " ++ show (score oth pl2)
 
 blankOthello :: Othello
 blankOthello = Othello (replicate 8 (replicate 8 Nothing))
