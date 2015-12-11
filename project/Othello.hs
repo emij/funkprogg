@@ -28,22 +28,27 @@ type Pos = (Int, Int)
 main :: IO ()
 main = gameLoop createGameBoard (Player "Player1" White) (Player "Player2" Black)
 
-getNum :: String -> IO Int
-getNum promptAgain = 
-  getFromStdin promptAgain getLine isNum read
+getPlay :: Int -> IO Int
+getPlay maxI = do
+  putStr "Please select valid index (range)\n"
+  input <- getLine
 
-isNum :: String -> Bool
-isnum [] = False 
-isNum (x:xs) = all isDigit xs && (x == '-' || isDigit x)
+  if isValidIndex input maxI
+  then do
+       index = read input
+       if inRange index (1,maxI)
+       then return index
+       else
+           getPlay maxI
+  else do
+       --putStr promptAgain
+       --getFromStdin promptAgain inputF isOk transformOk
+       getPlay maxI
 
-getFromStdin :: String -> (IO a) -> (a -> Bool) -> (a -> b) -> IO b
-getFromStdin promptAgain inputF isOk transformOk = do
-  input <- inputF
-  if isOk input
-     then return $ transformOk input
-     else do
-       putStr promptAgain
-       getFromStdin promptAgain inputF isOk transformOk
+isValidIndex :: String -> Int -> Bool
+isValidIndex [] _ = False
+isValidIndex (x:xs) maxI = all isDigit (x:xs)
+
 
 gameLoop :: Othello -> Player -> Player -> IO ()
 gameLoop oth pl nextPl = do
@@ -56,7 +61,7 @@ gameLoop oth pl nextPl = do
   putStrLn $ name pl ++ " (" ++ show (disk pl) ++ "):"
 
   -- Player selects a move from the list.
-  index <- getNum "Please select valid index (range)\n"
+  index <- getPlay (length iPlayableMoves)
 
   -- play game with input
   -- TODO
@@ -145,7 +150,7 @@ verticals oth (x, y) = horizontals transOthello (y, x)
 -------------------------------------------------------------------------
 
 playable :: Othello -> Pos -> Disk -> Bool
-playable oth pos c 
+playable oth pos c
   | occupied oth pos = False
   | otherwise = or [ playableBlock block | block <- blocks oth pos]
     where playableBlock [] = False
