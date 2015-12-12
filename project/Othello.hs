@@ -181,7 +181,7 @@ valid (x, y) = inRange (0, oSize-1) x && inRange (0, oSize-1) y
 playable :: Othello -> Pos -> Disk -> Bool
 playable oth pos c
   | occupied oth pos = False
-  | otherwise = or [ playableBlock block | block <- blocks oth pos]
+  | otherwise = or [ playableBlock b | b <- blocks oth pos]
     where playableBlock [] = False
           playableBlock (b:bs)
             | isNothing b || b == Just c = False
@@ -232,7 +232,7 @@ shouldFlipDir :: Othello -> Pos -> Direction -> Disk -> Bool
 shouldFlipDir oth pos dir d 
   | not (valid nextPos) = False
   | isNothing nextDisk = False
-  | fromJust nextDisk == flipD d = shouldFlipDir oth nextPos dir d
+  | fromJust nextDisk /= d = shouldFlipDir oth nextPos dir d
   | otherwise = True
   where nextPos = stepPos pos dir
         nextDisk = cell oth nextPos
@@ -240,15 +240,15 @@ shouldFlipDir oth pos dir d
 stepPos :: Pos -> Direction -> Pos
 stepPos (x, y) (dX, dY) = (x + dX, y + dY)
 
-flipD :: Disk -> Disk
-flipD White = Black
-flipD Black = White
+flipDisk :: Disk -> Disk
+flipDisk White = Black
+flipDisk Black = White
 
 flipPos :: Othello -> Pos -> Othello
 flipPos oth pos
   | isNothing (cell oth pos) = oth
   | otherwise = placeDisk oth pos flippedDisk
-    where flippedDisk = flipD $ fromJust $ cell oth pos
+    where flippedDisk = flipDisk $ fromJust $ cell oth pos
 
 -- Given a list of elements, replace the element with a new on given index
 (!!=) :: [a] -> (Int,a) -> [a]
