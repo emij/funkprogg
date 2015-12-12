@@ -205,30 +205,23 @@ flipDirections :: Othello -> Pos -> Disk -> [(Int,Int)] -> Othello
 flipDirections oth _ _ [] = oth
 flipDirections oth p d (dir:dirs) = flipDirections (flipLine oth p dir d) p d dirs
 
+-- Flip in a direction until we hit the same disk type.
 flipLine :: Othello -> Pos -> (Int, Int) -> Disk -> Othello
 flipLine oth p dir d
   | fromJust (cell oth nextPos) /= d = flipLine (flipPos oth nextPos) nextPos dir d
   | otherwise = oth
   where nextPos = stepPos p dir
 
+-- Check which directions should be flipped
 flippingDirections :: Othello -> Pos -> Disk -> [(Int,Int)]
 flippingDirections oth pos d = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1], shouldFlipDir oth pos (dX, dY) d ]
 
+-- Returns true if the disks in a direction ends with your own color.
 shouldFlipDir :: Othello -> Pos -> (Int, Int) -> Disk -> Bool
 shouldFlipDir oth p dir d 
   | not (valid nextPos) = False
   | isNothing nextDisk = False
-  | fromJust nextDisk == flipD d = endsWithMy oth nextPos dir d
-  | otherwise = False
-  where nextPos = stepPos p dir
-        nextDisk = cell oth nextPos
-
-
-endsWithMy :: Othello -> Pos -> (Int, Int) -> Disk -> Bool
-endsWithMy oth p dir d 
-  | not (valid nextPos) = False
-  | isNothing nextDisk = False
-  | fromJust nextDisk == flipD d = endsWithMy oth nextPos dir d
+  | fromJust nextDisk == flipD d = shouldFlipDir oth nextPos dir d
   | otherwise = True
   where nextPos = stepPos p dir
         nextDisk = cell oth nextPos
@@ -245,7 +238,6 @@ flipPos oth p
   | isNothing (cell oth p) = oth
   | otherwise = placeDisk oth p flippedDisk
     where flippedDisk = flipD $ fromJust $ cell oth p
-
 
 -- Update a position of a disk with a new disk
 placeDisk :: Othello -> Pos -> Disk -> Othello
