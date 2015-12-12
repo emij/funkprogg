@@ -24,6 +24,8 @@ data Disk = Black | White
  deriving (Show, Eq)
 -- A position on the Othello board
 type Pos = (Int, Int)
+
+type Direction = (Int, Int)
 -- A player consists of a name and a disk (his color)
 data Player = Player { name :: Name, disk :: Disk }
  deriving (Show)
@@ -48,7 +50,7 @@ gameLoop oth p nP = do
           else 
             gameLoop oth nP p
         )
-  
+
   let iPlayableMoves = zip [1..] playableMoves
   let iPMString = intercalate ", " [ show i ++ ":" ++ show pos | (i, pos) <- iPlayableMoves ]
   putStrLn iPMString
@@ -157,34 +159,22 @@ convCellToString (Just i) = if i == Black then "□" else "■"
 
 -- Creates all possible blocks from a Pos i an Othello
 blocks :: Othello -> Pos -> [Block]
-blocks oth pos = horizontals oth pos ++ verticals oth pos ++ diagonals oth pos
+blocks oth pos = [ block oth pos dir | dir <- directions ]
 
-diagonals :: Othello -> Pos -> [Block]
-diagonals o p = [diagonal o p (1,1),  -- South, East
-                 diagonal o p (1,-1), -- North, Easy
-                 diagonal o p (-1,1), -- South, West
-                 diagonal o p (-1,-1) -- North, West
-                ]
-
-diagonal :: Othello -> Pos -> (Int, Int)-> Block
-diagonal oth pos dir
-  | valid nextPos = cell oth nextPos : diagonal oth nextPos dir
+block :: Othello -> Pos -> (Int, Int) -> Block
+block oth pos dir
+  | valid nextPos = cell oth nextPos : block oth nextPos dir
   | otherwise = []
   where nextPos = stepPos pos dir
+
+directions :: [Direction]
+directions = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1] ]
 
 cell :: Othello -> Pos -> Cell
 cell oth (x, y)= rows oth !! y !! x
 
 valid :: Pos -> Bool
 valid (x, y) = inRange (0, oSize-1) x && inRange (0, oSize-1) y
-
-horizontals :: Othello -> Pos -> [Block]
-horizontals oth (x, y) = [reverse (take x row), drop (x+1) row]
-  where row = rows oth !! y
-
-verticals :: Othello -> Pos -> [Block]
-verticals oth (x, y) = horizontals transOthello (y, x)
-  where transOthello = Othello $ transpose (rows oth)
 
 -------------------------------------------------------------------------
 
@@ -222,23 +212,23 @@ placeDisk oth (x, y) d = Othello $ rows oth !!= (y, updatedRow)
       where updatedRow = row !!= (x, Just d)
             row        = rows oth !! y
 
-flipDirections :: Othello -> Pos -> Disk -> [(Int,Int)] -> Othello
+flipDirections :: Othello -> Pos -> Disk -> [Direction] -> Othello
 flipDirections oth _ _ [] = oth
 flipDirections oth p d (dir:dirs) = flipDirections (flipLine oth p dir d) p d dirs
 
 -- Flip in a direction until we hit the same disk type.
-flipLine :: Othello -> Pos -> (Int, Int) -> Disk -> Othello
+flipLine :: Othello -> Pos -> Direction -> Disk -> Othello
 flipLine oth pos dir d
   | fromJust (cell oth nextPos) /= d = flipLine (flipPos oth nextPos) nextPos dir d
   | otherwise = oth
   where nextPos = stepPos pos dir
 
 -- Check which directions should be flipped
-flippingDirections :: Othello -> Pos -> Disk -> [(Int,Int)]
-flippingDirections oth pos d = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1], shouldFlipDir oth pos (dX, dY) d ]
+flippingDirections :: Othello -> Pos -> Disk -> [Direction]
+flippingDirections oth pos d = [ dir | dir <- directions, shouldFlipDir oth pos dir d ]
 
 -- Returns true if the disks in a direction ends with your own color.
-shouldFlipDir :: Othello -> Pos -> (Int, Int) -> Disk -> Bool
+shouldFlipDir :: Othello -> Pos -> Direction -> Disk -> Bool
 shouldFlipDir oth pos dir d 
   | not (valid nextPos) = False
   | isNothing nextDisk = False
@@ -247,7 +237,7 @@ shouldFlipDir oth pos dir d
   where nextPos = stepPos pos dir
         nextDisk = cell oth nextPos
 
-stepPos :: Pos -> (Int, Int) -> Pos
+stepPos :: Pos -> Direction -> Pos
 stepPos (x, y) (dX, dY) = (x + dX, y + dY)
 
 flipD :: Disk -> Disk
