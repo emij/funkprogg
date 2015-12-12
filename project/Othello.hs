@@ -206,32 +206,35 @@ flipDirections oth _ _ [] = oth
 flipDirections oth p d (dir:dirs) = flipDirections (flipLine oth p dir d) p d dirs
 
 flipLine :: Othello -> Pos -> (Int, Int) -> Disk -> Othello
-flipLine oth (x,y) (dX, dY) d
-  | fromJust (cell oth newPos) /= d = flipLine (flipPos oth newPos) newPos (dX, dY) d
+flipLine oth p dir d
+  | fromJust (cell oth nextPos) /= d = flipLine (flipPos oth nextPos) nextPos dir d
   | otherwise = oth
-  where newPos = (x + dX, y + dY)
+  where nextPos = stepPos p dir
 
 flippingDirections :: Othello -> Pos -> Disk -> [(Int,Int)]
 flippingDirections oth pos d = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1], shouldFlipDir oth pos (dX, dY) d ]
 
 shouldFlipDir :: Othello -> Pos -> (Int, Int) -> Disk -> Bool
-shouldFlipDir oth (x, y) (dX, dY) d 
+shouldFlipDir oth p dir d 
   | not (valid nextPos) = False
   | isNothing nextDisk = False
-  | fromJust nextDisk == flipD d = endsWithMy oth nextPos (dX,dY) d
+  | fromJust nextDisk == flipD d = endsWithMy oth nextPos dir d
   | otherwise = False
-  where nextPos = (x + dX, y + dY)
+  where nextPos = stepPos p dir
         nextDisk = cell oth nextPos
 
 
 endsWithMy :: Othello -> Pos -> (Int, Int) -> Disk -> Bool
-endsWithMy oth (x, y) (dX, dY) d 
+endsWithMy oth p dir d 
   | not (valid nextPos) = False
   | isNothing nextDisk = False
-  | fromJust nextDisk == flipD d = endsWithMy oth nextPos (dX,dY) d
+  | fromJust nextDisk == flipD d = endsWithMy oth nextPos dir d
   | otherwise = True
-  where nextPos = (x + dX, y + dY)
+  where nextPos = stepPos p dir
         nextDisk = cell oth nextPos
+
+stepPos :: Pos -> (Int, Int) -> Pos
+stepPos (x, y) (dX, dY) = (x + dX, y + dY)
 
 flipD :: Disk -> Disk
 flipD White = Black
