@@ -67,7 +67,7 @@ gameLoop oth pl nextPl = do
   -- play game with input
   -- TODO
   -- If game is finished display winner else next player turn
-  let newoth = placeDisk oth (playableMoves !! (index - 1)) (disk pl)
+  let newoth = playDisk oth (playableMoves !! (index - 1)) (disk pl)
 
   if isFinished newoth then
     printWinner newoth pl nextPl
@@ -161,14 +161,13 @@ diagonal :: Othello -> Pos -> (Int, Int)-> Block
 diagonal oth (x, y) (dX, dY)
   | valid newPos = cell oth newPos : diagonal oth newPos (dX, dY)
   | otherwise = []
-  where newPos = (x - dX, y - dY)
+  where newPos = (x + dX, y + dY)
 
 cell :: Othello -> Pos -> Cell
 cell oth (x, y)= rows oth !! y !! x
 
 valid :: Pos -> Bool
 valid (x, y) = inRange (0, 7) x && inRange (0, 7) y
-
 
 horizontals :: Othello -> Pos -> [Block]
 horizontals oth (x, y) = [reverse (take x row), drop (x+1) row]
@@ -199,10 +198,56 @@ playablePos oth d = [ (x,y) | x <- [0..7],
                               y <- [0..7],
                               playable oth (x,y) d]
 
+playDisk :: Othello -> Pos -> Disk -> Othello
+playDisk oth p d = flipDirections (placeDisk oth p d) p d $ flippingDirections oth p d 
+
+flipDirections :: Othello -> Pos -> Disk -> [(Int,Int)] -> Othello
+flipDirections oth _ _ [] = oth
+flipDirections oth p d (dir:dirs) = flipDirections (flipLine oth p dir d) p d dirs
+
+flipLine :: Othello -> Pos -> (Int, Int) -> Disk -> Othello
+flipLine oth (x,y) (dX, dY) d
+  | fromJust (cell oth newPos) /= d = flipLine (flipPos oth newPos) newPos (dX, dY) d
+  | otherwise = oth
+  where newPos = (x + dX, y + dY)
+
+flippingDirections :: Othello -> Pos -> Disk -> [(Int,Int)]
+flippingDirections oth pos d = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1], shouldFlipDir oth pos (dX, dY) d ]
+
+shouldFlipDir :: Othello -> Pos -> (Int, Int) -> Disk -> Bool
+shouldFlipDir oth (x, y) (dX, dY) d 
+  | not (valid nextPos) = False
+  | isNothing nextDisk = False
+  | fromJust nextDisk == flipD d = endsWithMy oth nextPos (dX,dY) d
+  | otherwise = False
+  where nextPos = (x + dX, y + dY)
+        nextDisk = cell oth nextPos
+
+
+endsWithMy :: Othello -> Pos -> (Int, Int) -> Disk -> Bool
+endsWithMy oth (x, y) (dX, dY) d 
+  | not (valid nextPos) = False
+  | isNothing nextDisk = False
+  | fromJust nextDisk == flipD d = endsWithMy oth nextPos (dX,dY) d
+  | otherwise = True
+  where nextPos = (x + dX, y + dY)
+        nextDisk = cell oth nextPos
+
+flipD :: Disk -> Disk
+flipD White = Black
+flipD Black = White
+
+flipPos :: Othello -> Pos -> Othello
+flipPos oth p
+  | isNothing (cell oth p) = oth
+  | otherwise = placeDisk oth p flippedDisk
+    where flippedDisk = flipD $ fromJust $ cell oth p
+
+
 -- Update a position of a disk with a new disk
 placeDisk :: Othello -> Pos -> Disk -> Othello
-placeDisk oth (x, y) val = Othello $ rows oth !!= (y, updatedRow)
-      where updatedRow = row !!= (x, Just val)
+placeDisk oth (x, y) d = Othello $ rows oth !!= (y, updatedRow)
+      where updatedRow = row !!= (x, Just d)
             row        = rows oth !! y
 
 -- Given a list of elements, replace the element with a new on given index
