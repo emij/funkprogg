@@ -12,35 +12,26 @@ import Data.Tuple
 import Control.Monad
 -------------------------------------------------------------------------
 
+-- Othello consists of blocks
 data Othello = Othello { rows :: [Block] }
  deriving (Show)
+-- Each block consits of a cell
 type Block = [Cell]
--- We have chosen to call a Maybe Int a cell since its terms are more logical
--- in the sense of creating Othello
+-- Each cell may contain a disk
 type Cell = Maybe Disk
-type Name = String
-data Player = Player { name :: Name, disk :: Disk }
- deriving (Show)
+-- A disk can be Black or White
 data Disk = Black | White
  deriving (Show, Eq)
+-- A position on the Othello board
 type Pos = (Int, Int)
+-- A player consists of a name and a disk (his color)
+data Player = Player { name :: Name, disk :: Disk }
+ deriving (Show)
+type Name = String
 
 main :: IO ()
 main = gameLoop createGameBoard (Player "Player1" White) (Player "Player2" Black)
 
-getPlay :: Int -> IO Int
-getPlay maxI = do
-  putStr $ "Please select valid index (1-" ++ show maxI ++ "):\n"
-  input <- getLine
-
-  if validNum input && inRange (1, maxI) (read input :: Int)
-  then return $ read input
-  else getPlay maxI
-
--- Need own function as isDigit on an empty list returns True
-validNum :: String -> Bool
-validNum []     = False
-validNum str = all isDigit str
 
 gameLoop :: Othello -> Player -> Player -> IO ()
 gameLoop oth pl nextPl = do
@@ -64,16 +55,29 @@ gameLoop oth pl nextPl = do
   -- Player selects a move from the list.
   index <- getPlay (length iPlayableMoves)
 
-  -- play game with input
-  -- TODO
-  -- If game is finished display winner else next player turn
+  -- We generate the new othello from the play
   let newoth = playDisk oth (playableMoves !! (index - 1)) pl
 
+  -- If game is finished display winner else next player turn
   if isFinished newoth then
     printWinner newoth pl nextPl
   else do
     putStrLn "Next player turn"
     gameLoop newoth nextPl pl
+
+getPlay :: Int -> IO Int
+getPlay maxI = do
+  putStr $ "Please select valid index (1-" ++ show maxI ++ "):\n"
+  input <- getLine
+
+  if validNum input && inRange (1, maxI) (read input :: Int)
+  then return $ read input
+  else getPlay maxI
+
+-- Need own function as isDigit on an empty list returns True
+validNum :: String -> Bool
+validNum []     = False
+validNum str = all isDigit str
 
 printWinner :: Othello -> Player -> Player -> IO ()
 printWinner oth pl1 pl2 = do 
@@ -92,21 +96,27 @@ printWinner oth pl1 pl2 = do
               ++ scoreString oth pl1 pl2
   putStrLn "#########################"
 
+-- Given a state of a Othello, determine who is the winner
 winner :: Othello -> Player -> Player -> Maybe Player
 winner oth pl1 pl2
   | score oth pl1 > score oth pl2 = Just pl1
   | score oth pl2 > score oth pl1 = Just pl2
   | otherwise                     = Nothing
 
+-- Score of a player in a Othello state
 score :: Othello -> Player -> Int
 score oth pl = length [ d | d <- catMaybes (concat (rows oth)), d == disk pl ]
 
+-- The current game score of the Othello
 scoreString :: Othello -> Player -> Player -> String
 scoreString oth pl1 pl2 = show (score oth pl1) ++ " - " ++ show (score oth pl2)
+
+-------------------------------------------------------------------------
 
 blankOthello :: Othello
 blankOthello = Othello (replicate 8 (replicate 8 Nothing))
 
+-- Creates a Othello with the initial configuration
 createGameBoard :: Othello
 createGameBoard = placeDisks blankOthello 
   [((3,3), White),
@@ -119,12 +129,6 @@ createGameBoard = placeDisks blankOthello
 placeDisks :: Othello -> [(Pos, Disk)] -> Othello
 placeDisks oth []              = oth
 placeDisks oth ((pos, d):xs) = placeDisks (placeDisk oth pos d) xs
-
-printPlayerName :: Player -> IO ()
-printPlayerName pl = putStrLn $ name pl
-
-printPlayerColor :: Player -> IO ()
-printPlayerColor pl = print $ disk pl
 
 -- Checks if there are any empty places on a board
 isFinished :: Othello -> Bool
@@ -191,6 +195,7 @@ playable oth pos c
           myDisk []    = False
           myDisk (q:_) = q == Just c
 
+-- Determines if a cell is occupied or not
 occupied :: Othello -> Pos -> Bool
 occupied oth pos = isJust (cell oth pos)
 
@@ -200,10 +205,18 @@ playablePos oth pl = [ (x,y) | x <- [0..7],
                               y <- [0..7],
                               playable oth (x,y) (disk pl)]
 
+-------------------------------------------------------------------------
+
 -- Player places a disk at a position
 playDisk :: Othello -> Pos -> Player -> Othello
 playDisk oth p pl = flipDirections (placeDisk oth p d) p d $ flippingDirections oth p d 
   where d = disk pl
+
+-- Update a position of a disk with a new disk
+placeDisk :: Othello -> Pos -> Disk -> Othello
+placeDisk oth (x, y) d = Othello $ rows oth !!= (y, updatedRow)
+      where updatedRow = row !!= (x, Just d)
+            row        = rows oth !! y
 
 flipDirections :: Othello -> Pos -> Disk -> [(Int,Int)] -> Othello
 flipDirections oth _ _ [] = oth
@@ -242,12 +255,6 @@ flipPos oth p
   | isNothing (cell oth p) = oth
   | otherwise = placeDisk oth p flippedDisk
     where flippedDisk = flipD $ fromJust $ cell oth p
-
--- Update a position of a disk with a new disk
-placeDisk :: Othello -> Pos -> Disk -> Othello
-placeDisk oth (x, y) d = Othello $ rows oth !!= (y, updatedRow)
-      where updatedRow = row !!= (x, Just d)
-            row        = rows oth !! y
 
 -- Given a list of elements, replace the element with a new on given index
 (!!=) :: [a] -> (Int,a) -> [a]
