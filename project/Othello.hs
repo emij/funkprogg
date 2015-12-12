@@ -29,41 +29,43 @@ data Player = Player { name :: Name, disk :: Disk }
  deriving (Show)
 type Name = String
 
+oSize :: Int
+oSize = 8
+
 main :: IO ()
 main = gameLoop createGameBoard (Player "Player1" White) (Player "Player2" Black)
 
-
 gameLoop :: Othello -> Player -> Player -> IO ()
-gameLoop oth pl nextPl = do
+gameLoop oth p nP = do
   printOthello oth
   -- Print and save possible moves
-  let playableMoves = playablePos oth pl
+  let playableMoves = playablePos oth p
   when (null playableMoves) (do 
-          let opponentPlayableMoves = playablePos oth nextPl
+          let opponentPlayableMoves = playablePos oth nP
           if null opponentPlayableMoves then 
-            printWinner oth pl nextPl 
+            printWinner oth p nP
             -- How do we handle a early exit?
           else 
-            gameLoop oth nextPl pl
+            gameLoop oth nP p
         )
   
   let iPlayableMoves = zip [1..] playableMoves
   let iPMString = intercalate ", " [ show i ++ ":" ++ show pos | (i, pos) <- iPlayableMoves ]
   putStrLn iPMString
-  putStrLn $ name pl ++ "'s (" ++ show (disk pl) ++ ") turn!"
+  putStrLn $ name p ++ "'s (" ++ show (disk p) ++ ") turn!"
 
   -- Player selects a move from the list.
   index <- getPlay (length iPlayableMoves)
 
   -- We generate the new othello from the play
-  let newoth = playDisk oth (playableMoves !! (index - 1)) pl
+  let newoth = playDisk oth (playableMoves !! (index - 1)) p
 
   -- If game is finished display winner else next player turn
   if isFinished newoth then
-    printWinner newoth pl nextPl
+    printWinner newoth p nP
   else do
     putStrLn "Next player turn"
-    gameLoop newoth nextPl pl
+    gameLoop newoth nP p
 
 getPlay :: Int -> IO Int
 getPlay maxI = do
@@ -80,50 +82,52 @@ validNum []     = False
 validNum str = all isDigit str
 
 printWinner :: Othello -> Player -> Player -> IO ()
-printWinner oth pl1 pl2 = do 
+printWinner oth p1 p2 = do 
   putStrLn "#########################"
   putStrLn "####   Final board   ####"
   putStrLn "#########################"
   printOthello oth
-  let winningPlayer = winner oth pl1 pl2
+  let winningPlayer = winner oth p1 p2
   putStrLn "#########################"
   if isNothing winningPlayer then
-    putStrLn $ "It was a draw! " ++ scoreString oth pl1 pl2 
+    putStrLn $ "It was a draw! " ++ scoreString oth p1 p2 
   else 
     putStrLn $ "Gratulations " 
               ++ name (fromJust winningPlayer) 
               ++ "! You won with score " 
-              ++ scoreString oth pl1 pl2
+              ++ scoreString oth p1 p2
   putStrLn "#########################"
 
 -- Given a state of a Othello, determine who is the winner
 winner :: Othello -> Player -> Player -> Maybe Player
-winner oth pl1 pl2
-  | score oth pl1 > score oth pl2 = Just pl1
-  | score oth pl2 > score oth pl1 = Just pl2
+winner oth p1 p2
+  | score oth p1 > score oth p2 = Just p1
+  | score oth p2 > score oth p1 = Just p2
   | otherwise                     = Nothing
 
 -- Score of a player in a Othello state
 score :: Othello -> Player -> Int
-score oth pl = length [ d | d <- catMaybes (concat (rows oth)), d == disk pl ]
+score oth p = length [ d | d <- catMaybes (concat (rows oth)), d == disk p ]
 
 -- The current game score of the Othello
 scoreString :: Othello -> Player -> Player -> String
-scoreString oth pl1 pl2 = show (score oth pl1) ++ " - " ++ show (score oth pl2)
+scoreString oth p1 p2 = show (score oth p1) ++ " - " ++ show (score oth p2)
 
 -------------------------------------------------------------------------
 
 blankOthello :: Othello
-blankOthello = Othello (replicate 8 (replicate 8 Nothing))
+blankOthello = Othello (replicate oSize (replicate oSize Nothing))
 
 -- Creates a Othello with the initial configuration
 createGameBoard :: Othello
 createGameBoard = placeDisks blankOthello 
-  [((3,3), White),
-   ((3,4), Black),
-   ((4,3), Black),
-   ((4,4), White)
+  [((c1,c1), White),
+   ((c1,c2), Black),
+   ((c2,c1), Black),
+   ((c2,c2), White)
   ]
+  where c1 = quot oSize 2 - 1
+        c2 = quot oSize 2
 
 -- Given a list containing tuples of position and disk places the disks on the board
 placeDisks :: Othello -> [(Pos, Disk)] -> Othello
@@ -163,16 +167,16 @@ diagonals o p = [diagonal o p (1,1),  -- South, East
                 ]
 
 diagonal :: Othello -> Pos -> (Int, Int)-> Block
-diagonal oth (x, y) (dX, dY)
-  | valid newPos = cell oth newPos : diagonal oth newPos (dX, dY)
+diagonal oth pos dir
+  | valid nextPos = cell oth nextPos : diagonal oth nextPos dir
   | otherwise = []
-  where newPos = (x + dX, y + dY)
+  where nextPos = stepPos pos dir
 
 cell :: Othello -> Pos -> Cell
 cell oth (x, y)= rows oth !! y !! x
 
 valid :: Pos -> Bool
-valid (x, y) = inRange (0, 7) x && inRange (0, 7) y
+valid (x, y) = inRange (0, oSize-1) x && inRange (0, oSize-1) y
 
 horizontals :: Othello -> Pos -> [Block]
 horizontals oth (x, y) = [reverse (take x row), drop (x+1) row]
@@ -201,16 +205,16 @@ occupied oth pos = isJust (cell oth pos)
 
 -- Returns all playable positions for a player
 playablePos :: Othello -> Player -> [Pos]
-playablePos oth pl = [ (x,y) | x <- [0..7],
-                              y <- [0..7],
-                              playable oth (x,y) (disk pl)]
+playablePos oth p = [ (x,y) | x <- [0..oSize-1],
+                              y <- [0..oSize-1],
+                              playable oth (x,y) (disk p)]
 
 -------------------------------------------------------------------------
 
 -- Player places a disk at a position
 playDisk :: Othello -> Pos -> Player -> Othello
-playDisk oth p pl = flipDirections (placeDisk oth p d) p d $ flippingDirections oth p d 
-  where d = disk pl
+playDisk oth pos p = flipDirections (placeDisk oth pos d) pos d $ flippingDirections oth pos d 
+  where d = disk p
 
 -- Update a position of a disk with a new disk
 placeDisk :: Othello -> Pos -> Disk -> Othello
@@ -224,10 +228,10 @@ flipDirections oth p d (dir:dirs) = flipDirections (flipLine oth p dir d) p d di
 
 -- Flip in a direction until we hit the same disk type.
 flipLine :: Othello -> Pos -> (Int, Int) -> Disk -> Othello
-flipLine oth p dir d
+flipLine oth pos dir d
   | fromJust (cell oth nextPos) /= d = flipLine (flipPos oth nextPos) nextPos dir d
   | otherwise = oth
-  where nextPos = stepPos p dir
+  where nextPos = stepPos pos dir
 
 -- Check which directions should be flipped
 flippingDirections :: Othello -> Pos -> Disk -> [(Int,Int)]
@@ -235,12 +239,12 @@ flippingDirections oth pos d = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1], shou
 
 -- Returns true if the disks in a direction ends with your own color.
 shouldFlipDir :: Othello -> Pos -> (Int, Int) -> Disk -> Bool
-shouldFlipDir oth p dir d 
+shouldFlipDir oth pos dir d 
   | not (valid nextPos) = False
   | isNothing nextDisk = False
   | fromJust nextDisk == flipD d = shouldFlipDir oth nextPos dir d
   | otherwise = True
-  where nextPos = stepPos p dir
+  where nextPos = stepPos pos dir
         nextDisk = cell oth nextPos
 
 stepPos :: Pos -> (Int, Int) -> Pos
@@ -251,10 +255,10 @@ flipD White = Black
 flipD Black = White
 
 flipPos :: Othello -> Pos -> Othello
-flipPos oth p
-  | isNothing (cell oth p) = oth
-  | otherwise = placeDisk oth p flippedDisk
-    where flippedDisk = flipD $ fromJust $ cell oth p
+flipPos oth pos
+  | isNothing (cell oth pos) = oth
+  | otherwise = placeDisk oth pos flippedDisk
+    where flippedDisk = flipD $ fromJust $ cell oth pos
 
 -- Given a list of elements, replace the element with a new on given index
 (!!=) :: [a] -> (Int,a) -> [a]
