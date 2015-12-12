@@ -46,9 +46,9 @@ gameLoop :: Othello -> Player -> Player -> IO ()
 gameLoop oth pl nextPl = do
   printOthello oth
   -- Print and save possible moves
-  let playableMoves = playablePos oth (disk pl)
+  let playableMoves = playablePos oth pl
   when (null playableMoves) (do 
-          let opponentPlayableMoves = playablePos oth (disk nextPl)
+          let opponentPlayableMoves = playablePos oth nextPl
           if null opponentPlayableMoves then 
             printWinner oth pl nextPl 
             -- How do we handle a early exit?
@@ -67,7 +67,7 @@ gameLoop oth pl nextPl = do
   -- play game with input
   -- TODO
   -- If game is finished display winner else next player turn
-  let newoth = playDisk oth (playableMoves !! (index - 1)) (disk pl)
+  let newoth = playDisk oth (playableMoves !! (index - 1)) pl
 
   if isFinished newoth then
     printWinner newoth pl nextPl
@@ -193,13 +193,16 @@ playable oth pos c
 occupied :: Othello -> Pos -> Bool
 occupied oth pos = isJust (cell oth pos)
 
-playablePos :: Othello -> Disk -> [Pos]
-playablePos oth d = [ (x,y) | x <- [0..7],
+-- Returns all playable positions for a player
+playablePos :: Othello -> Player -> [Pos]
+playablePos oth pl = [ (x,y) | x <- [0..7],
                               y <- [0..7],
-                              playable oth (x,y) d]
+                              playable oth (x,y) (disk pl)]
 
-playDisk :: Othello -> Pos -> Disk -> Othello
-playDisk oth p d = flipDirections (placeDisk oth p d) p d $ flippingDirections oth p d 
+-- Player places a disk at a position
+playDisk :: Othello -> Pos -> Player -> Othello
+playDisk oth p pl = flipDirections (placeDisk oth p d) p d $ flippingDirections oth p d 
+  where d = disk pl
 
 flipDirections :: Othello -> Pos -> Disk -> [(Int,Int)] -> Othello
 flipDirections oth _ _ [] = oth
