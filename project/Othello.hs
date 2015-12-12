@@ -115,17 +115,18 @@ createGameBoard = placeDisks blankOthello
    ((4,4), White)
   ]
 
+-- Given a list containing tuples of position and disk places the disks on the board
+placeDisks :: Othello -> [(Pos, Disk)] -> Othello
+placeDisks oth []              = oth
+placeDisks oth ((pos, d):xs) = placeDisks (placeDisk oth pos d) xs
+
 printPlayerName :: Player -> IO ()
 printPlayerName pl = putStrLn $ name pl
 
 printPlayerColor :: Player -> IO ()
 printPlayerColor pl = print $ disk pl
 
-placeDisks :: Othello -> [(Pos, Disk)] -> Othello
-placeDisks oth []              = oth
-placeDisks oth ((pos,disk):xs) = placeDisks (placeDisk oth pos disk) xs
-
--- isSolved oth checks if oth is already solved, i.e. there are no blanks
+-- Checks if there are any empty places on a board
 isFinished :: Othello -> Bool
 isFinished oth = (all.all) isJust $ rows oth
 
@@ -133,7 +134,7 @@ isFinished oth = (all.all) isJust $ rows oth
 
 -- printOthello oth prints a representation of the othoku oth on the screen
 printOthello :: Othello -> IO ()
-printOthello oth = putStr $ unlines [concat l | l <- convToString oth]
+printOthello oth = putStr $ unlines [concat (intersperse " " l) | l <- convToString oth]
 
 -- Converts a Othello to a string representation
 convToString :: Othello -> [[String]]
@@ -141,7 +142,7 @@ convToString oth = (map.map) convCellToString (rows oth)
 
 -- Converts a cell to a string representation
 convCellToString :: Cell -> String
-convCellToString Nothing = "."
+convCellToString Nothing = "·"
 convCellToString (Just i) = if i == Black then "□" else "■"
 
 -------------------------------------------------------------------------
