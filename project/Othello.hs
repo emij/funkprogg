@@ -31,6 +31,7 @@ data Player = Player { name :: Name, disk :: Disk }
  deriving (Show)
 type Name = String
 
+-- The size of the Othello
 oSize :: Int
 oSize = 8
 
@@ -161,23 +162,34 @@ convCellToString (Just i) = if i == Black then "□" else "■"
 blocks :: Othello -> Pos -> [Block]
 blocks oth pos = [ block oth pos dir | dir <- directions ]
 
-block :: Othello -> Pos -> (Int, Int) -> Block
+-- Extracts a block given a pos and a direction
+block :: Othello -> Pos -> Direction -> Block
 block oth pos dir
   | valid nextPos = cell oth nextPos : block oth nextPos dir
   | otherwise = []
   where nextPos = stepPos pos dir
 
+-- Returns all possible directions
 directions :: [Direction]
 directions = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1] ]
 
+-- Returns the cell of a position in a othello
 cell :: Othello -> Pos -> Cell
 cell oth (x, y)= rows oth !! y !! x
 
+-- Checks whether a position is valid or not
 valid :: Pos -> Bool
 valid (x, y) = inRange (0, oSize-1) x && inRange (0, oSize-1) y
 
 -------------------------------------------------------------------------
 
+-- Returns all playable positions for a player
+playablePos :: Othello -> Player -> [Pos]
+playablePos oth p = [ (x,y) | x <- [0..oSize-1],
+                              y <- [0..oSize-1],
+                              playable oth (x,y) (disk p)]
+
+-- Determines if a position is playable or not
 playable :: Othello -> Pos -> Disk -> Bool
 playable oth pos c
   | occupied oth pos = False
@@ -192,12 +204,6 @@ playable oth pos c
 -- Determines if a cell is occupied or not
 occupied :: Othello -> Pos -> Bool
 occupied oth pos = isJust (cell oth pos)
-
--- Returns all playable positions for a player
-playablePos :: Othello -> Player -> [Pos]
-playablePos oth p = [ (x,y) | x <- [0..oSize-1],
-                              y <- [0..oSize-1],
-                              playable oth (x,y) (disk p)]
 
 -------------------------------------------------------------------------
 
