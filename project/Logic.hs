@@ -32,7 +32,6 @@ winner oth p1 p2
 score :: Othello -> Player -> Int
 score oth p = length [ d | d <- catMaybes (concat (rows oth)), d == disk p ]
 
-
 -------------------------------------------------------------------------
 
 -- Creates all possible blocks from a Pos i an Othello
@@ -49,7 +48,6 @@ block oth pos dir
 -- Returns all possible directions
 directions :: [Direction]
 directions = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1] ]
-
 
 -------------------------------------------------------------------------
 
@@ -81,7 +79,6 @@ occupied oth pos = isJust (cell oth pos)
 playDisk :: Othello -> Pos -> Player -> Othello
 playDisk oth pos p = flipDirections (placeDisk oth pos d) pos d $ flippingDirections oth pos d
   where d = disk p
-
 
 flipDirections :: Othello -> Pos -> Disk -> [Direction] -> Othello
 flipDirections oth _ _ [] = oth
