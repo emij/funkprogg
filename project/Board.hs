@@ -33,7 +33,7 @@ blankOthello = Othello (replicate oSize (replicate oSize Nothing))
 
 -- Creates a Othello with the initial configuration
 createGameBoard :: Othello
-createGameBoard = placeDisks blankOthello 
+createGameBoard = placeDisks blankOthello
   [((c1,c1), White),
    ((c1,c2), Black),
    ((c2,c1), Black),
@@ -59,7 +59,7 @@ isFinished oth = (all.all) isJust $ rows oth
 
 -------------------------------------------------------------------------
 
--- printOthello oth prints a representation of the othoku oth on the screen
+-- printOthello oth prints a representation of the othello oth on the screen
 printOthello :: Othello -> IO ()
 printOthello oth = putStr $ unlines [concat (intersperse " " l) | l <- convToString oth]
 
