@@ -53,6 +53,8 @@ placeDisk oth (x, y) d = Othello $ rows oth !!= (y, updatedRow)
       where updatedRow = row !!= (x, Just d)
             row        = rows oth !! y
 
+
+
 -- Checks if there are any empty places on a board
 isFinished :: Othello -> Bool
 isFinished oth = (all.all) isJust $ rows oth
@@ -61,7 +63,7 @@ isFinished oth = (all.all) isJust $ rows oth
 
 -- printOthello oth prints a representation of the othello oth on the screen
 printOthello :: Othello -> IO ()
-printOthello oth = putStr $ unlines [unwords l) | l <- convToString oth]
+printOthello oth = putStr $ unlines [unwords l | l <- convToString oth]
 
 -- Converts a Othello to a string representation
 convToString :: Othello -> [[String]]

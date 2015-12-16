@@ -79,7 +79,7 @@ occupied oth pos = isJust (cell oth pos)
 
 -- Player places a disk at a position
 playDisk :: Othello -> Pos -> Player -> Othello
-playDisk oth pos p = flipDirections (placeDisk oth pos d) pos d $ flippingDirections oth pos d 
+playDisk oth pos p = flipDirections (placeDisk oth pos d) pos d $ flippingDirections oth pos d
   where d = disk p
 
 
@@ -100,7 +100,7 @@ flippingDirections oth pos d = [ dir | dir <- directions, shouldFlipDir oth pos 
 
 -- Returns true if the disks in a direction ends with your own color.
 shouldFlipDir :: Othello -> Pos -> Direction -> Disk -> Bool
-shouldFlipDir oth pos dir d 
+shouldFlipDir oth pos dir d
   | not (valid nextPos) = False
   | isNothing nextDisk = False
   | fromJust nextDisk /= d = shouldFlipDir oth nextPos dir d
@@ -121,4 +121,5 @@ flipPos oth pos
   | otherwise = placeDisk oth pos flippedDisk
     where flippedDisk = flipDisk $ fromJust $ cell oth pos
 
--------------------------------------------------------------------------
+-----------------------------------------------------------------------
+
