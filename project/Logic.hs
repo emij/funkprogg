@@ -57,11 +57,10 @@ playablePos oth p = [ (x,y) | x <- [0..oSize-1],
                               y <- [0..oSize-1],
                               playable oth (x,y) (disk p)]
 
+-- TODO Should not use guards when returning a bool
 -- Determines if a position is playable or not
 playable :: Othello -> Pos -> Disk -> Bool
-playable oth pos c
-  | occupied oth pos = False
-  | otherwise = or [ playableBlock b | b <- blocks oth pos]
+playable oth pos c =  not (occupied oth pos) && or [ playableBlock b | b <- blocks oth pos]
     where playableBlock [] = False
           playableBlock (b:bs)
             | isNothing b || b == Just c = False
@@ -95,6 +94,7 @@ flipLine oth pos dir d
 flippingDirections :: Othello -> Pos -> Disk -> [Direction]
 flippingDirections oth pos d = [ dir | dir <- directions, shouldFlipDir oth pos dir d ]
 
+-- TODO this method should not use guards
 -- Returns true if the disks in a direction ends with your own color.
 shouldFlipDir :: Othello -> Pos -> Direction -> Disk -> Bool
 shouldFlipDir oth pos dir d
