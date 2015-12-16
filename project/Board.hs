@@ -61,7 +61,7 @@ isFinished oth = (all.all) isJust $ rows oth
 
 -- printOthello oth prints a representation of the othello oth on the screen
 printOthello :: Othello -> IO ()
-printOthello oth = putStr $ unlines [concat (intersperse " " l) | l <- convToString oth]
+printOthello oth = putStr $ unlines [unwords l) | l <- convToString oth]
 
 -- Converts a Othello to a string representation
 convToString :: Othello -> [[String]]
