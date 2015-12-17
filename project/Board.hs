@@ -24,6 +24,24 @@ data Disk = Black | White
 -- A position on the Othello board
 type Pos = (Int, Int)
 
+
+instance Arbitrary Disk where
+  arbitrary = oneof [return Black, return White]
+
+othdisk :: Gen Disk
+othdisk = oneof [return Black, return White]
+
+othcell :: Gen Cell
+othcell = frequency [ (3, return Nothing),
+                   (7, othdisk >>= return . Just)
+                    ]
+
+instance Arbitrary Othello where
+  arbitrary =
+    do rows <- sequence [ sequence [ othcell | j <- [1..9] ] | i <- [1..9] ]
+       return (Othello rows)
+
+
 -- The size of the Othello
 oSize :: Int
 oSize = 8
@@ -42,6 +60,9 @@ createGameBoard = placeDisks blankOthello
   where c1 = quot oSize 2 - 1
         c2 = quot oSize 2
 
+--prop_correctGameBoard :: Othello -> Bool
+--prop_correctGameBoard = ()
+
 -- Given a list containing tuples of position and disk places the disks on the board
 placeDisks :: Othello -> [(Pos, Disk)] -> Othello
 placeDisks oth []              = oth
@@ -53,6 +74,10 @@ placeDisk oth (x, y) d = Othello $ rows oth !!= (y, updatedRow)
       where updatedRow = row !!= (x, Just d)
             row        = rows oth !! y
 
+prop_placeDisk :: Othello -> Pos -> Disk -> Bool
+prop_placeDisk oth p d = (fromJust $ cell (placeDisk oth pos d) pos) == d
+  where pos = (x,y)
+        (x, y) = (fst p `mod` 8, snd p `mod` 8)
 
 
 -- Checks if there are any empty places on a board
