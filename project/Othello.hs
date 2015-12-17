@@ -17,19 +17,17 @@ main = gameLoop createGameBoard (Player "Player1" White) (Player "Player2" Black
 
 gameLoop :: Othello -> Player -> Player -> IO ()
 gameLoop oth p nP = do
-  putStrLn $ (name p) ++ "'s turn"
+  putStrLn $ name p ++ "'s turn"
   printOthello oth
   -- Print and save possible moves
   let playableMoves = playablePos oth p
-  when (null playableMoves) (do 
+  when (null playableMoves) (do
           let opponentPlayableMoves = playablePos oth nP
-          if null opponentPlayableMoves then do
+          if null opponentPlayableMoves then
             printWinner oth p nP
-            return ()
           else do
-            putStrLn $ "No possible moves for " ++ (name p)
+            putStrLn $ "No possible moves for " ++ name p
             gameLoop oth nP p
-            return ()
         )
 
   let iPlayableMoves = zip [1..] playableMoves
@@ -44,11 +42,9 @@ gameLoop oth p nP = do
   let newoth = playDisk oth (playableMoves !! (index - 1)) p
 
   -- If game is finished display winner else next player turn
-  if isFinished newoth then do
+  if isFinished newoth then
     printWinner newoth p nP
-    return()
-  else do
-    gameLoop newoth nP p
+  else gameLoop newoth nP p
 
 getPlay :: Int -> IO Int
 getPlay maxI = do
@@ -65,7 +61,7 @@ validNum []     = False
 validNum str = all isDigit str
 
 printWinner :: Othello -> Player -> Player -> IO ()
-printWinner oth p1 p2 = do 
+printWinner oth p1 p2 = do
   putStrLn "###############"
   putStrLn "# Final board #"
   putStrLn "###############"
@@ -73,11 +69,11 @@ printWinner oth p1 p2 = do
   let winningPlayer = winner oth p1 p2
   putStrLn "###############"
   if isNothing winningPlayer then
-    putStrLn $ "It was a draw! " ++ scoreString oth p1 p2 
-  else 
-    putStrLn $ "Gratulations " 
-              ++ name (fromJust winningPlayer) 
-              ++ "! You won with score " 
+    putStrLn $ "It was a draw! " ++ scoreString oth p1 p2
+  else
+    putStrLn $ "Gratulations "
+              ++ name (fromJust winningPlayer)
+              ++ "! You won with score "
               ++ scoreString oth p1 p2
   putStrLn "###############"
 

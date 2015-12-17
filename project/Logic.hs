@@ -47,9 +47,9 @@ block oth pos dir
 
 -- Returns all possible directions
 -- Non moving direction is removed (0,0), would work anyway because
--- it is only used when checking if a position should be flipped 
+-- it is only used when checking if a position should be flipped
 -- or when flipping disks. Both these function would exit directly.
--- 
+--
 directions :: [Direction]
 directions = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1], (dX, dY) /= (0,0) ]
 
@@ -63,10 +63,10 @@ playablePos oth p = [ (x,y) | x <- [0..oSize-1],
 
 -- Determines if a position is playable or not
 playable :: Othello -> Pos -> Disk -> Bool
-playable oth pos c =  not (occupied oth pos) 
+playable oth pos c =  not (occupied oth pos)
                    && or [ playableBlock b | b <- blocks oth pos]
     where playableBlock []     = False
-          playableBlock (b:bs) = b == Just (flipDisk c) 
+          playableBlock (b:bs) = b == Just (flipDisk c)
                               && myDisk (dropWhile (==b) bs)
           myDisk []    = False
           myDisk (q:_) = q == Just c
@@ -95,14 +95,14 @@ flipLine oth pos dir d
 
 -- Check which directions should be flipped
 flippingDirections :: Othello -> Pos -> Disk -> [Direction]
-flippingDirections oth pos d = [ dir | dir <- directions, 
+flippingDirections oth pos d = [ dir | dir <- directions,
                                       shouldFlipDir oth pos dir d ]
 
 -- Returns true if the disks in a direction ends with your own color.
 shouldFlipDir :: Othello -> Pos -> Direction -> Disk -> Bool
-shouldFlipDir oth pos dir d = valid nextPos 
-                           && isJust nextDisk 
-                           && (fromJust nextDisk == d 
+shouldFlipDir oth pos dir d = valid nextPos
+                           && isJust nextDisk
+                           && (fromJust nextDisk == d
                               || shouldFlipDir oth nextPos dir d)
   where nextPos = stepPos pos dir
         nextDisk = cell oth nextPos
@@ -119,6 +119,12 @@ flipPos oth pos
   | isNothing (cell oth pos) = oth
   | otherwise = placeDisk oth pos flippedDisk
     where flippedDisk = flipDisk $ fromJust $ cell oth pos
+
+prop_flipPos :: Othello -> Pos -> Bool
+prop_flipPos oth (x,y) = isNothing (cell oth pos)
+                      || (flipDisk (fromJust (cell oth pos))
+                        == fromJust (cell (flipPos oth pos) pos))
+  where pos = (x `mod` oSize, y `mod` oSize)
 
 -----------------------------------------------------------------------
 

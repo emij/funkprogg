@@ -75,9 +75,8 @@ placeDisk oth (x, y) d = Othello $ rows oth !!= (y, updatedRow)
             row        = rows oth !! y
 
 prop_placeDisk :: Othello -> Pos -> Disk -> Bool
-prop_placeDisk oth p d = (fromJust $ cell (placeDisk oth pos d) pos) == d
-  where pos = (x,y)
-        (x, y) = (fst p `mod` 8, snd p `mod` 8)
+prop_placeDisk oth (x,y) d = fromJust (cell (placeDisk oth pos d) pos) == d
+  where pos = (x `mod` oSize, y `mod` oSize)
 
 
 -- Checks if there are any empty places on a board
