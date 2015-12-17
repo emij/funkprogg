@@ -46,8 +46,12 @@ block oth pos dir
   where nextPos = stepPos pos dir
 
 -- Returns all possible directions
+-- Non moving direction is removed (0,0), would work anyway because
+-- it is only used when checking if a position should be flipped 
+-- or when flipping disks. Both these function would exit directly.
+-- 
 directions :: [Direction]
-directions = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1] ]
+directions = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1], (dX, dY) /= (0,0) ]
 
 -------------------------------------------------------------------------
 
@@ -57,14 +61,13 @@ playablePos oth p = [ (x,y) | x <- [0..oSize-1],
                               y <- [0..oSize-1],
                               playable oth (x,y) (disk p)]
 
--- TODO Should not use guards when returning a bool
 -- Determines if a position is playable or not
 playable :: Othello -> Pos -> Disk -> Bool
-playable oth pos c =  not (occupied oth pos) && or [ playableBlock b | b <- blocks oth pos]
-    where playableBlock [] = False
-          playableBlock (b:bs)
-            | isNothing b || b == Just c = False
-            | otherwise = myDisk (dropWhile (==b) bs)
+playable oth pos c =  not (occupied oth pos) 
+                   && or [ playableBlock b | b <- blocks oth pos]
+    where playableBlock []     = False
+          playableBlock (b:bs) = b == Just (flipDisk c) 
+                              && myDisk (dropWhile (==b) bs)
           myDisk []    = False
           myDisk (q:_) = q == Just c
 
@@ -92,16 +95,15 @@ flipLine oth pos dir d
 
 -- Check which directions should be flipped
 flippingDirections :: Othello -> Pos -> Disk -> [Direction]
-flippingDirections oth pos d = [ dir | dir <- directions, shouldFlipDir oth pos dir d ]
+flippingDirections oth pos d = [ dir | dir <- directions, 
+                                      shouldFlipDir oth pos dir d ]
 
--- TODO this method should not use guards
 -- Returns true if the disks in a direction ends with your own color.
 shouldFlipDir :: Othello -> Pos -> Direction -> Disk -> Bool
-shouldFlipDir oth pos dir d
-  | not (valid nextPos) = False
-  | isNothing nextDisk = False
-  | fromJust nextDisk /= d = shouldFlipDir oth nextPos dir d
-  | otherwise = True
+shouldFlipDir oth pos dir d = valid nextPos 
+                           && isJust nextDisk 
+                           && (fromJust nextDisk == d 
+                              || shouldFlipDir oth nextPos dir d)
   where nextPos = stepPos pos dir
         nextDisk = cell oth nextPos
 
