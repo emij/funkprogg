@@ -98,7 +98,7 @@ convToString oth = (map.map) convCellToString (rows oth)
 convCellToString :: Cell -> String
 convCellToString Nothing = "·"
 convCellToString (Just i) = if i == Black then "□" else "■"
---
+
 -------------------------------------------------------------------------
 
 -- Returns the cell of a position in a othello
@@ -116,4 +116,3 @@ valid (x, y) = inRange (0, oSize-1) x && inRange (0, oSize-1) y
   | i < 0          = error "negative index"
   | otherwise      = a ++ val : as
           where (a,_:as) = splitAt i al
-

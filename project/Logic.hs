@@ -32,7 +32,6 @@ winner oth p1 p2
 score :: Othello -> Player -> Int
 score oth p = length [ d | d <- catMaybes (concat (rows oth)), d == disk p ]
 
-
 -------------------------------------------------------------------------
 
 -- Creates all possible blocks from a Pos i an Othello
@@ -50,7 +49,6 @@ block oth pos dir
 directions :: [Direction]
 directions = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1] ]
 
-
 -------------------------------------------------------------------------
 
 -- Returns all playable positions for a player
@@ -59,11 +57,10 @@ playablePos oth p = [ (x,y) | x <- [0..oSize-1],
                               y <- [0..oSize-1],
                               playable oth (x,y) (disk p)]
 
+-- TODO Should not use guards when returning a bool
 -- Determines if a position is playable or not
 playable :: Othello -> Pos -> Disk -> Bool
-playable oth pos c
-  | occupied oth pos = False
-  | otherwise = or [ playableBlock b | b <- blocks oth pos]
+playable oth pos c =  not (occupied oth pos) && or [ playableBlock b | b <- blocks oth pos]
     where playableBlock [] = False
           playableBlock (b:bs)
             | isNothing b || b == Just c = False
@@ -82,7 +79,6 @@ playDisk :: Othello -> Pos -> Player -> Othello
 playDisk oth pos p = flipDirections (placeDisk oth pos d) pos d $ flippingDirections oth pos d
   where d = disk p
 
-
 flipDirections :: Othello -> Pos -> Disk -> [Direction] -> Othello
 flipDirections oth _ _ [] = oth
 flipDirections oth p d (dir:dirs) = flipDirections (flipLine oth p dir d) p d dirs
@@ -98,6 +94,7 @@ flipLine oth pos dir d
 flippingDirections :: Othello -> Pos -> Disk -> [Direction]
 flippingDirections oth pos d = [ dir | dir <- directions, shouldFlipDir oth pos dir d ]
 
+-- TODO this method should not use guards
 -- Returns true if the disks in a direction ends with your own color.
 shouldFlipDir :: Othello -> Pos -> Direction -> Disk -> Bool
 shouldFlipDir oth pos dir d
