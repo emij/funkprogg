@@ -20,9 +20,9 @@ gameLoop oth p nP = do
   putStrLn $ name p ++ "'s turn"
   printOthello oth
   -- Print and save possible moves
-  let playableMoves = playablePos oth p
+  let playableMoves = playablePos oth (disk p)
   when (null playableMoves) (do
-          let opponentPlayableMoves = playablePos oth nP
+          let opponentPlayableMoves = playablePos oth (disk nP)
           if null opponentPlayableMoves then
             printWinner oth p nP
           else do

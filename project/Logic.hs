@@ -56,10 +56,10 @@ directions = [ (dX, dY) | dX <- [-1,0,1], dY <- [-1,0,1], (dX, dY) /= (0,0) ]
 -------------------------------------------------------------------------
 
 -- Returns all playable positions for a player
-playablePos :: Othello -> Player -> [Pos]
-playablePos oth p = [ (x,y) | x <- [0..oSize-1],
+playablePos :: Othello -> Disk -> [Pos]
+playablePos oth d = [ (x,y) | x <- [0..oSize-1],
                               y <- [0..oSize-1],
-                              playable oth (x,y) (disk p)]
+                              playable oth (x,y) d]
 
 -- Determines if a position is playable or not
 playable :: Othello -> Pos -> Disk -> Bool
@@ -106,6 +106,13 @@ shouldFlipDir oth pos dir d = valid nextPos
                               || shouldFlipDir oth nextPos dir d)
   where nextPos = stepPos pos dir
         nextDisk = cell oth nextPos
+
+prop_flipCorrect :: Othello -> Disk -> Int -> Bool
+prop_flipCorrect oth d i = null pPos
+                        || notElem  selectedPos (playablePos (flipDirections oth selectedPos d (flippingDirections oth selectedPos d)) d)
+  where selectedIndex = i `mod` length pPos
+        pPos = playablePos oth d
+        selectedPos = pPos !! selectedIndex
 
 stepPos :: Pos -> Direction -> Pos
 stepPos (x, y) (dX, dY) = (x + dX, y + dY)
