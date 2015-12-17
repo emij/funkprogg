@@ -79,8 +79,9 @@ occupied oth pos = isJust (cell oth pos)
 
 -- Player places a disk at a position
 playDisk :: Othello -> Pos -> Player -> Othello
-playDisk oth pos p = flipDirections (placeDisk oth pos d) pos d $ flippingDirections oth pos d
+playDisk oth pos p = flipDirections (placeDisk oth pos d) pos d flipDirs
   where d = disk p
+        flipDirs = flippingDirections oth pos d
 
 flipDirections :: Othello -> Pos -> Disk -> [Direction] -> Othello
 flipDirections oth _ _ [] = oth
@@ -109,10 +110,11 @@ shouldFlipDir oth pos dir d = valid nextPos
 
 prop_flipCorrect :: Othello -> Disk -> Int -> Bool
 prop_flipCorrect oth d i = null pPos
-                        || notElem  selectedPos (playablePos (flipDirections oth selectedPos d (flippingDirections oth selectedPos d)) d)
-  where selectedIndex = i `mod` length pPos
-        pPos = playablePos oth d
-        selectedPos = pPos !! selectedIndex
+                        || notElem  selPos (playablePos flippedOth d)
+  where selIndex   = i `mod` length pPos
+        pPos       = playablePos oth d
+        selPos     = pPos !! selIndex
+        flippedOth = flipDirections oth selPos d (flippingDirections oth selPos d)
 
 stepPos :: Pos -> Direction -> Pos
 stepPos (x, y) (dX, dY) = (x + dX, y + dY)
