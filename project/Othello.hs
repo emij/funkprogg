@@ -2,13 +2,10 @@ module Othello  where
 
 import Logic
 import Board
-import Test.QuickCheck
-import Data.Maybe(isNothing, isJust, fromMaybe, fromJust, catMaybes, listToMaybe)
-import Numeric
-import System.IO
-import Data.Char(digitToInt, isDigit)
+import Data.Maybe
+import Data.Char(isDigit)
 import Data.Ix(inRange)
-import Data.List
+import Data.List(intercalate)
 import Control.Monad
 -------------------------------------------------------------------------
 

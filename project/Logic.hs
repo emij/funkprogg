@@ -2,15 +2,8 @@ module Logic where
 
 import Board
 import Test.QuickCheck
-import Data.Maybe(isNothing, isJust, fromMaybe, fromJust, catMaybes, listToMaybe)
-import Numeric
-import System.IO
-import Data.Char(digitToInt, isDigit)
-import Data.Ix(inRange)
-import Data.List.Split
-import Data.List
-import Data.Tuple
-import Control.Monad
+import Data.Maybe
+
 -------------------------------------------------------------------------
 
 
@@ -108,6 +101,9 @@ shouldFlipDir oth pos dir d = valid nextPos
   where nextPos = stepPos pos dir
         nextDisk = cell oth nextPos
 
+-- Property that verifes that if we have flipped a position, it should no
+-- longer be playable since all possible blocks no longer playable by
+-- the same player
 prop_flipCorrect :: Othello -> Disk -> Int -> Bool
 prop_flipCorrect oth d i = null pPos
                         || notElem  selPos (playablePos flippedOth d)
@@ -129,6 +125,7 @@ flipPos oth pos
   | otherwise = placeDisk oth pos flippedDisk
     where flippedDisk = flipDisk $ fromJust $ cell oth pos
 
+-- Verifies that a position is flipped correctly when using function flipPos
 prop_flipPos :: Othello -> Pos -> Bool
 prop_flipPos oth (x,y) = isNothing (cell oth pos)
                       || (flipDisk (fromJust (cell oth pos))

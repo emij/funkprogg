@@ -1,15 +1,10 @@
 module Board where
 
 import Test.QuickCheck
-import Data.Maybe(isNothing, isJust, fromMaybe, fromJust, catMaybes, listToMaybe)
-import Numeric
-import System.IO
-import Data.Char(digitToInt, isDigit)
+import Data.Maybe
 import Data.Ix(inRange)
-import Data.List.Split
-import Data.List
-import Data.Tuple
-import Control.Monad
+
+-------------------------------------------------------------------------
 
 -- Othello consists of blocks
 data Othello = Othello { rows :: [Block] }
@@ -24,7 +19,9 @@ data Disk = Black | White
 -- A position on the Othello board
 type Pos = (Int, Int)
 
+-------------------------------------------------------------------------
 
+-- Arbitrary  functions to generate random Othellos
 instance Arbitrary Disk where
   arbitrary = oneof [return Black, return White]
 
@@ -41,6 +38,7 @@ instance Arbitrary Othello where
     do rows <- sequence [ sequence [ othcell | j <- [1..9] ] | i <- [1..9] ]
        return (Othello rows)
 
+-------------------------------------------------------------------------
 
 -- The size of the Othello
 oSize :: Int
@@ -60,9 +58,6 @@ createGameBoard = placeDisks blankOthello
   where c1 = quot oSize 2 - 1
         c2 = quot oSize 2
 
---prop_correctGameBoard :: Othello -> Bool
---prop_correctGameBoard = ()
-
 -- Given a list containing tuples of position and disk places the disks on the board
 placeDisks :: Othello -> [(Pos, Disk)] -> Othello
 placeDisks oth []              = oth
@@ -74,6 +69,7 @@ placeDisk oth (x, y) d = Othello $ rows oth !!= (y, updatedRow)
       where updatedRow = row !!= (x, Just d)
             row        = rows oth !! y
 
+-- Verifies that a disk really is places as correctly
 prop_placeDisk :: Othello -> Pos -> Disk -> Bool
 prop_placeDisk oth (x,y) d = fromJust (cell (placeDisk oth pos d) pos) == d
   where pos = (x `mod` oSize, y `mod` oSize)
